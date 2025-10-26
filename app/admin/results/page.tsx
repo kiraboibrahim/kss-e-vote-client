@@ -254,7 +254,7 @@ const InfoBanner = () => (
 
 // Main Component
 export default function ResultsPage() {
-    const POLL_INTERVAL = 40; // 30 Seconds
+    const POLL_INTERVAL = 40; // 40 Seconds
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [results, setResults] = useState<LiveVotingResults | null>(null);
     const [loading, setLoading] = useState(true);

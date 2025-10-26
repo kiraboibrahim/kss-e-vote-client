@@ -204,6 +204,7 @@ const ConfirmationModal = ({
     selectedVotes,
     positionsWithCandidates,
     error,
+    submitting,
     onCancel,
     onConfirm
 }: {
@@ -211,6 +212,7 @@ const ConfirmationModal = ({
     selectedVotes: { [positionId: number]: number };
     positionsWithCandidates: Position[];
     error: string | null;
+    submitting: boolean;
     onCancel: () => void;
     onConfirm: () => void
 }) => {
@@ -247,15 +249,18 @@ const ConfirmationModal = ({
                 <div className="flex gap-4">
                     <button
                         onClick={onCancel}
-                        className="flex-1 px-6 py-3 bg-slate-600 hover:bg-slate-500 text-white rounded-xl font-semibold transition-colors"
+                        disabled={submitting}
+                        className="flex-1 px-6 py-3 bg-slate-600 hover:bg-slate-500 text-white rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Review Again
                     </button>
                     <button
                         onClick={onConfirm}
-                        className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black rounded-xl font-semibold transition-colors"
+                        disabled={submitting}
+                        className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                        Confirm & Submit
+                        {submitting && <Loader2 className="w-5 h-5 animate-spin" />}
+                        {submitting ? 'Submitting...' : 'Confirm & Submit'}
                     </button>
                 </div>
             </div>
