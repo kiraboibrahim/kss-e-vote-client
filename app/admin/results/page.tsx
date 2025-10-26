@@ -254,13 +254,14 @@ const InfoBanner = () => (
 
 // Main Component
 export default function ResultsPage() {
+    const POLL_INTERVAL = 40; // 30 Seconds
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [results, setResults] = useState<LiveVotingResults | null>(null);
     const [loading, setLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [lastUpdated, setLastUpdated] = useState<string>('');
-    const [nextUpdate, setNextUpdate] = useState<number>(120);
+    const [nextUpdate, setNextUpdate] = useState<number>(POLL_INTERVAL);
 
     const playNotificationSound = () => {
         try {
@@ -326,7 +327,7 @@ export default function ResultsPage() {
             setResults(data);
             setLastUpdated(new Date().toLocaleTimeString());
             setError(null);
-            setNextUpdate(120);
+            setNextUpdate(POLL_INTERVAL);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred while loading results');
         } finally {
