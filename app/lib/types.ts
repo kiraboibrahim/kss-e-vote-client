@@ -28,5 +28,9 @@ export interface LiveResult {
     percentage: number;
 };
 
+export interface PositionResults {
+    results: PositionWithCandidates
+}
+
 
 export type UserRole = "voter" | "admin";

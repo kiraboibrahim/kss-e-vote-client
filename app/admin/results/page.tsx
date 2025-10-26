@@ -29,13 +29,6 @@ interface Statistics {
     voter_turnout_percentage: number;
 }
 
-interface ApiResponse {
-    success: boolean;
-    data: {
-        positions: Position[];
-        statistics: Statistics;
-    };
-}
 
 // Skeleton Loader
 const SkeletonLoader = () => (
