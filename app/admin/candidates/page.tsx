@@ -80,7 +80,7 @@ export default function CandidatesPage() {
                                 />
                                 <div className="flex-1">
                                     <h3 className="text-2xl font-bold text-white mb-1">{candidate.name}</h3>
-                                    <p className="text-yellow-400 font-semibold mb-1">{candidate.position_title}</p>
+                                    <p className="text-yellow-400 font-semibold mb-1">{candidate.post_title}</p>
                                     <p className="text-gray-400 text-sm mb-3">{candidate.stream}</p>
                                     <p className="text-gray-300 leading-relaxed">{candidate.slogan}</p>
                                 </div>

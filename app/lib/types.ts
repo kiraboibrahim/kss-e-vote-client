@@ -9,6 +9,7 @@ export interface Candidate {
     name: string;
     _class: string;
     photo: string;
+    post_title: string;
     stream: string;
     slogan: string;
 };
