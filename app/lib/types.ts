@@ -32,5 +32,8 @@ export interface PositionResults {
     results: PositionWithCandidates
 }
 
+export interface CandidateResults {
+    results: Array<Candidate>
+}
 
 export type UserRole = "voter" | "admin";

@@ -1,10 +1,10 @@
-import { PositionResults } from '@/app/lib/types';
+import { PositionResults,CandidateResults } from '@/app/lib/types';
 import { getAccessToken } from './utils';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 
-export async function fetchAllCandidates(): Promise<PositionResults> {
+export async function fetchAllCandidates(): Promise<CandidateResults> {
     const response = await fetch(`${API_BASE_URL}/candidates`);
 
     if (!response.ok) {
@@ -21,8 +21,7 @@ export async function fetchAllCandidates(): Promise<PositionResults> {
  * Fetches all available positions
  * @returns Promise with array of positions
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function fetchPositions(): Promise<Array<any>> {
+export async function fetchPositions(): Promise<Array<PositionResults>> {
     const response = await fetch(`${API_BASE_URL}/positions`);
 
     if (!response.ok) {
