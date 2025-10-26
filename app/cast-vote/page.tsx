@@ -1,10 +1,25 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { Check, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
-import { Candidate, Position } from '../lib/types';
 import { castVote, fetchPositions } from '../lib/candidates';
-import { PositionWithCandidates } from '../lib/types';
 import { getVoter } from '../lib/utils';
+
+interface Candidate {
+    id: number;
+    name: string;
+    _class: string;
+    photo: string;
+    stream: string;
+    slogan: string;
+}
+
+interface Position {
+    id: number;
+    title: string;
+    description: string;
+    candidate_count: number;
+    candidates: Candidate[];
+}
 
 const LoadingState = () => (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -194,7 +209,7 @@ const ConfirmationModal = ({
 }: {
     show: boolean;
     selectedVotes: { [positionId: number]: number };
-    positionsWithCandidates: PositionWithCandidates[];
+    positionsWithCandidates: Position[];
     error: string | null;
     onCancel: () => void;
     onConfirm: () => void
@@ -260,7 +275,7 @@ function transformVotesToBackendFormat(votes: { [positionId: number]: number }) 
 
 // Main Component
 export default function CastVotePage() {
-    const [positionsWithCandidates, setPositionsWithCandidates] = useState<PositionWithCandidates[]>([]);
+    const [positionsWithCandidates, setPositionsWithCandidates] = useState<Position[]>([]);
     const [selectedVotes, setSelectedVotes] = useState<{ [positionId: number]: number }>({});
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [votingComplete, setVotingComplete] = useState(false);
@@ -339,7 +354,7 @@ export default function CastVotePage() {
                     <PositionCard
                         key={positionData.id}
                         positionId={positionData.id}
-                        position={{ title: positionData.title, description: positionData.description }}
+                        position={positionData}
                         candidates={positionData.candidates}
                         selectedCandidateId={selectedVotes[positionData.id]}
                         onVoteSelect={handleVoteSelect}

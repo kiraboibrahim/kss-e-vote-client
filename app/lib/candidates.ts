@@ -1,5 +1,6 @@
 import { PositionResults,CandidateResults } from '@/app/lib/types';
 import { getAccessToken } from './utils';
+import { LiveVotingResults } from './results';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -21,7 +22,7 @@ export async function fetchAllCandidates(): Promise<CandidateResults> {
  * Fetches all available positions
  * @returns Promise with array of positions
  */
-export async function fetchPositions(): Promise<Array<PositionResults>> {
+export async function fetchPositions(): Promise<PositionResults> {
     const response = await fetch(`${API_BASE_URL}/positions`);
 
     if (!response.ok) {
@@ -39,7 +40,7 @@ export async function fetchPositions(): Promise<Array<PositionResults>> {
  * @returns Promise with results grouped by position
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function fetchGroupedResults(): Promise<{ results: any }> {
+export async function fetchLiveResults(): Promise<LiveVotingResults> {
     const response = await fetch(`${API_BASE_URL}/results/live`);
 
     if (!response.ok) {
@@ -52,9 +53,8 @@ export async function fetchGroupedResults(): Promise<{ results: any }> {
         throw new Error(data.message || 'Failed to fetch grouped results');
     }
 
-    return {
-        results: data.data
-    };
+    return data.data
+    
 }
 
 /**

@@ -2,6 +2,8 @@ export interface Position {
     id: number;
     title: string;
     description: string;
+    total_votes: number;
+    candidates: Array<Candidate>;
 };
 
 export interface Candidate {
@@ -29,7 +31,7 @@ export interface LiveResult {
 };
 
 export interface PositionResults {
-    results: PositionWithCandidates
+    results: Array<PositionWithCandidates>
 }
 
 export interface CandidateResults {

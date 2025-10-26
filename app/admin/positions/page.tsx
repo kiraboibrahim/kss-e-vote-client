@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { fetchPositions } from '@/app/lib/candidates';
+import { PositionWithCandidates } from '@/app/lib/types';
 
 interface Candidate {
     id: number;
@@ -111,7 +112,7 @@ const ErrorDisplay: React.FC<{ error: string }> = ({ error }) => (
 );
 
 export default function PositionsPage() {
-    const [positions, setPositions] = useState<Position[]>([]);
+    const [positions, setPositions] = useState<PositionWithCandidates[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 

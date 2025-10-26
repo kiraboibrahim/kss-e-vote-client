@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, RefreshCw, Users, Vote } from 'lucide-react';
-import { fetchGroupedResults } from '@/app/lib/candidates';
+import { fetchLiveResults } from '@/app/lib/candidates';
 
 interface Candidate {
     id: number;
@@ -13,6 +13,7 @@ interface Candidate {
     slogan: string;
     votes: number;
     percentage: number;
+
 }
 
 interface Position {
@@ -29,6 +30,10 @@ interface Statistics {
     voter_turnout_percentage: number;
 }
 
+export interface LiveVotingResults {
+    positions: Position[];
+    statistics: Statistics;
+}
 
 // Skeleton Loader
 const SkeletonLoader = () => (
@@ -102,7 +107,6 @@ const CandidateCard = ({ candidate }: { candidate: Candidate }) => (
 // Position Card Component
 const PositionCard = ({ position }: { position: Position }) => {
     const sortedCandidates = [...position.candidates].sort((a, b) => b.votes - a.votes);
-    const winner = sortedCandidates[0];
 
     return (
         <div className="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700">
@@ -251,7 +255,7 @@ const InfoBanner = () => (
 // Main Component
 export default function ResultsPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [results, setResults] = useState<Array<any> | null>(null);
+    const [results, setResults] = useState<LiveVotingResults | null>(null);
     const [loading, setLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -281,8 +285,11 @@ export default function ResultsPage() {
         }
     };
 
-    const hasResultsChanged = (oldResults: Array<Position> | null, newResults: Array<Position> | null) => {
-        if (!oldResults || !newResults) return false;
+    const hasResultsChanged = (oldVotingData: LiveVotingResults | null, newVotingData: LiveVotingResults | null) => {
+        const oldResults = oldVotingData?.positions;
+        const newResults = newVotingData?.positions;
+        if (!oldResults) return false;
+        if (!newResults) return false;
 
         if (oldResults.length !== newResults.length) return true;
 
@@ -311,13 +318,12 @@ export default function ResultsPage() {
             }
 
             // Replace with your actual API endpoint
-            const data = await fetchGroupedResults();
-            console.log(data.results);
-            if (!isInitial && hasResultsChanged(results, data.results)) {
+            const data = await fetchLiveResults();
+            if (!isInitial && hasResultsChanged(results, data)) {
                 playNotificationSound();
             }
 
-            setResults(data.results);
+            setResults(data);
             setLastUpdated(new Date().toLocaleTimeString());
             setError(null);
             setNextUpdate(120);
@@ -385,7 +391,7 @@ export default function ResultsPage() {
                         <StatisticsCard statistics={results.statistics} />
 
                         <div className="space-y-8">
-                            {results.positions.map((position: Position) => (
+                            {results.positions.map((position) => (
                                 <PositionCard key={position.id} position={position} />
                             ))}
                         </div>
