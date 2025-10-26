@@ -392,7 +392,7 @@ export default function ResultsPage() {
                         <StatisticsCard statistics={results.statistics} />
 
                         <div className="space-y-8">
-                            {results.positions.map(position => (
+                            {results.positions.map((position: Position) => (
                                 <PositionCard key={position.id} position={position} />
                             ))}
                         </div>
