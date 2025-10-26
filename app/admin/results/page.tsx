@@ -344,7 +344,7 @@ export default function ResultsPage() {
 
     useEffect(() => {
         if (!loading && !error) {
-            const pollInterval = setInterval(() => loadResults(false), 120000);
+            const pollInterval = setInterval(() => loadResults(false), 30 * 1000);
             return () => clearInterval(pollInterval);
         }
     }, [loading, error]);
