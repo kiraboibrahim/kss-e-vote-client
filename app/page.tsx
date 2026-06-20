@@ -10,6 +10,7 @@ import { storeVoter } from './lib/utils';
 
 export default function LoginPage() {
     const [studentId, setStudentId] = useState('');
+    const [pin, setPin] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [selectedRole, setSelectedRole] = useState<UserRole>('voter');
@@ -23,6 +24,7 @@ export default function LoginPage() {
         try {
             const result = await authenticate(selectedRole, {
                 studentId: selectedRole === 'voter' ? studentId : undefined,
+                pin: selectedRole === 'voter' ? pin : undefined,
                 email: selectedRole === 'admin' ? email : undefined,
                 password: selectedRole === 'admin' ? password : undefined,
             });
@@ -100,16 +102,34 @@ export default function LoginPage() {
                     <div className="space-y-4">
                         {selectedRole === 'voter' ? (
                             <>
-                                <label className="block text-center text-xl font-semibold text-white mb-2">
-                                    Student ID
+                                <label className="block text-center text-xl font-semibold text-white mb-4">
+                                    Student Login
                                 </label>
-                                <input
-                                    type="text"
-                                    value={studentId}
-                                    onChange={(e) => setStudentId(e.target.value)}
-                                    placeholder="Enter your student ID"
-                                    className="w-full px-6 py-4 rounded-xl border-2 border-yellow-400 bg-slate-700 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors"
-                                />
+
+                                {/* Student ID Input */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1 ml-1">Student ID</label>
+                                    <input
+                                        type="text"
+                                        value={studentId}
+                                        onChange={(e) => setStudentId(e.target.value)}
+                                        placeholder="Enter your Student ID"
+                                        className="w-full px-6 py-4 rounded-xl border-2 border-yellow-400 bg-slate-700 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors"
+                                    />
+                                </div>
+
+                                {/* PIN Input */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1 ml-1">Secret PIN</label>
+                                    <input
+                                        type="password"
+                                        value={pin}
+                                        onChange={(e) => setPin(e.target.value)}
+                                        placeholder="Enter your 4-digit PIN from your voter slip"
+                                        maxLength={10}
+                                        className="w-full px-6 py-4 rounded-xl border-2 border-yellow-400 bg-slate-700 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors tracking-widest"
+                                    />
+                                </div>
                             </>
                         ) : (
                             <>
