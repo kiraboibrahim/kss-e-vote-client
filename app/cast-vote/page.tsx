@@ -226,14 +226,33 @@ const ConfirmationModal = ({
                     Please review your selections before submitting. Once submitted, votes cannot be changed.
                 </p>
 
-                <div className="bg-slate-700 rounded-xl p-4 mb-6 space-y-3">
+                <div className="bg-slate-700/50 border border-slate-600 rounded-xl p-4 mb-6 space-y-4">
                     {Object.entries(selectedVotes).map(([positionId, candidateId]) => {
                         const position = positionsWithCandidates.find(p => p.id === Number(positionId));
                         const candidate = position?.candidates.find(c => c.id === candidateId);
                         return (
-                            <div key={positionId} className="flex justify-between items-center">
-                                <span className="text-yellow-400 font-semibold">{position?.title}:</span>
-                                <span className="text-white">{candidate?.name}</span>
+                            <div key={positionId} className="flex items-center justify-between border-b border-slate-700/60 last:border-b-0 pb-3 last:pb-0">
+                                <div>
+                                    <p className="text-xs text-yellow-400 font-semibold uppercase tracking-wider">{position?.title}</p>
+                                    <div className="flex items-center gap-3 mt-2">
+                                        {candidate?.photo ? (
+                                            <img 
+                                                src={candidate.photo} 
+                                                alt={candidate.name} 
+                                                className="w-10 h-10 rounded-full object-cover border border-slate-500"
+                                            />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-white font-bold">
+                                                {candidate?.name?.charAt(0)}
+                                            </div>
+                                        )}
+                                        <div>
+                                            <p className="text-white font-bold text-base">{candidate?.name}</p>
+                                            <p className="text-xs text-gray-400">{candidate?._class} {candidate?.stream ? `(${candidate.stream})` : ''}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span className="text-xs font-semibold text-green-400 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20">Selected</span>
                             </div>
                         );
                     })}
