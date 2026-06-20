@@ -380,6 +380,7 @@ export default function CastVotePage() {
                 selectedVotes={selectedVotes}
                 positionsWithCandidates={positionsWithCandidates}
                 error={error}
+                submitting={submitting}
                 onCancel={() => setShowConfirmation(false)}
                 onConfirm={confirmVoteSubmission}
             />

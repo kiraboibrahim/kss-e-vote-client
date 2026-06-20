@@ -1,12 +1,15 @@
-import { PositionResults,CandidateResults } from '@/app/lib/types';
+import { PositionResults, CandidateResults, Election } from '@/app/lib/types';
 import { getAccessToken } from './utils';
 import { LiveVotingResults } from './results';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 
-export async function fetchAllCandidates(): Promise<CandidateResults> {
-    const response = await fetch(`${API_BASE_URL}/candidates`);
+export async function fetchAllCandidates(electionId?: number): Promise<CandidateResults> {
+    const url = electionId
+        ? `${API_BASE_URL}/candidates/?election_id=${electionId}`
+        : `${API_BASE_URL}/candidates`;
+    const response = await fetch(url);
 
     if (!response.ok) {
         throw new Error('Failed to fetch candidates');
@@ -20,10 +23,14 @@ export async function fetchAllCandidates(): Promise<CandidateResults> {
 
 /**
  * Fetches all available positions
+ * @param electionId - Optional ID of the election to fetch positions for
  * @returns Promise with array of positions
  */
-export async function fetchPositions(): Promise<PositionResults> {
-    const response = await fetch(`${API_BASE_URL}/positions`);
+export async function fetchPositions(electionId?: number): Promise<PositionResults> {
+    const url = electionId
+        ? `${API_BASE_URL}/positions/?election_id=${electionId}`
+        : `${API_BASE_URL}/positions`;
+    const response = await fetch(url);
 
     if (!response.ok) {
         throw new Error('Failed to fetch positions');
@@ -36,12 +43,31 @@ export async function fetchPositions(): Promise<PositionResults> {
 
 
 /**
+ * Fetches all elections
+ */
+export async function fetchElections(): Promise<Election[]> {
+    const response = await fetch(`${API_BASE_URL}/elections/`);
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch elections');
+    }
+
+    const data = await response.json();
+    return data;
+}
+
+
+/**
  * Fetches live voting results grouped by position
+ * @param electionId - Optional ID of the election to fetch results for
  * @returns Promise with results grouped by position
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function fetchLiveResults(): Promise<LiveVotingResults> {
-    const response = await fetch(`${API_BASE_URL}/results/live`);
+export async function fetchLiveResults(electionId?: number): Promise<LiveVotingResults> {
+    const url = electionId
+        ? `${API_BASE_URL}/results/live/?election_id=${electionId}`
+        : `${API_BASE_URL}/results/live`;
+        
+    const response = await fetch(url);
 
     if (!response.ok) {
         throw new Error('Failed to fetch grouped results');
@@ -53,17 +79,15 @@ export async function fetchLiveResults(): Promise<LiveVotingResults> {
         throw new Error(data.message || 'Failed to fetch grouped results');
     }
 
-    return data.data
-    
+    return data.data;
 }
 
 /**
  * Casts a vote for the student
- * @param studentId - The student's ID
- * @param votes - Object mapping position titles to candidate IDs
+ * @param votes - Object containing votes array for bulk submission
  * @returns Promise with vote submission result
  */
-export async function castVote(votes: { [positionId: number]: number }): Promise<{ message: string; data: { votedAt: string; positionsVoted: number } }> {
+export async function castVote(votes: { votes: { post: number; candidate: number }[] }): Promise<{ message: string; data: { votedAt: string; positionsVoted: number } }> {
     const response = await fetch(`${API_BASE_URL}/vote/cast/`, {
         method: 'POST',
         headers: {

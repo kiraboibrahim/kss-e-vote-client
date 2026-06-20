@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, RefreshCw, Users, Vote } from 'lucide-react';
-import { fetchLiveResults } from '@/app/lib/candidates';
+import { fetchLiveResults, fetchElections } from '@/app/lib/candidates';
+import { Election } from '@/app/lib/types';
 
 interface Candidate {
     id: number;
@@ -255,8 +256,9 @@ const InfoBanner = () => (
 // Main Component
 export default function ResultsPage() {
     const POLL_INTERVAL = 40; // 40 Seconds
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [results, setResults] = useState<LiveVotingResults | null>(null);
+    const [elections, setElections] = useState<Election[]>([]);
+    const [selectedElectionId, setSelectedElectionId] = useState<number | undefined>(undefined);
     const [loading, setLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -265,7 +267,6 @@ export default function ResultsPage() {
 
     const playNotificationSound = () => {
         try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
@@ -311,6 +312,7 @@ export default function ResultsPage() {
     };
 
     const loadResults = async (isInitial = false) => {
+        if (selectedElectionId === undefined) return;
         try {
             if (isInitial) {
                 setLoading(true);
@@ -318,8 +320,7 @@ export default function ResultsPage() {
                 setIsRefreshing(true);
             }
 
-            // Replace with your actual API endpoint
-            const data = await fetchLiveResults();
+            const data = await fetchLiveResults(selectedElectionId);
             if (!isInitial && hasResultsChanged(results, data)) {
                 playNotificationSound();
             }
@@ -339,25 +340,51 @@ export default function ResultsPage() {
         }
     };
 
+    // Load elections list on mount
     useEffect(() => {
-        loadResults(true);
+        const loadInitialData = async () => {
+            try {
+                setLoading(true);
+                const electionsList = await fetchElections();
+                setElections(electionsList);
+                const active = electionsList.find(e => e.is_active);
+                const initialId = active?.id || electionsList[0]?.id;
+                setSelectedElectionId(initialId);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An error occurred while loading elections');
+                setLoading(false);
+            }
+        };
+        loadInitialData();
     }, []);
 
+    // Load results when election selection changes
     useEffect(() => {
-        if (!loading && !error) {
+        if (selectedElectionId !== undefined) {
+            loadResults(true);
+        } else if (elections.length === 0 && !loading) {
+            setResults(null);
+            setLoading(false);
+        }
+    }, [selectedElectionId]);
+
+    // Setup periodic polling
+    useEffect(() => {
+        if (!loading && !error && selectedElectionId !== undefined) {
             const pollInterval = setInterval(() => loadResults(false), 30 * 1000);
             return () => clearInterval(pollInterval);
         }
-    }, [loading, error]);
+    }, [loading, error, selectedElectionId]);
 
+    // Setup countdown timer
     useEffect(() => {
-        if (!loading && !error) {
+        if (!loading && !error && selectedElectionId !== undefined) {
             const countdownInterval = setInterval(() => {
-                setNextUpdate(prev => (prev <= 1 ? 120 : prev - 1));
+                setNextUpdate(prev => (prev <= 1 ? POLL_INTERVAL : prev - 1));
             }, 1000);
             return () => clearInterval(countdownInterval);
         }
-    }, [loading, error]);
+    }, [loading, error, selectedElectionId]);
 
     if (error) {
         return <ErrorState error={error} onRetry={() => loadResults(true)} />;
@@ -368,6 +395,19 @@ export default function ResultsPage() {
             <div className="max-w-7xl mx-auto space-y-6">
                 <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
                     <h2 className="text-3xl font-bold text-white">Live Election Results</h2>
+                    {elections.length > 0 && (
+                        <select
+                            value={selectedElectionId || ''}
+                            onChange={(e) => setSelectedElectionId(Number(e.target.value))}
+                            className="bg-slate-800 text-white border border-slate-700 rounded-lg px-4 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        >
+                            {elections.map((elec) => (
+                                <option key={elec.id} value={elec.id}>
+                                    {elec.title} {elec.is_active ? '(Active)' : ''} {elec.is_demo ? '(Demo)' : ''}
+                                </option>
+                            ))}
+                        </select>
+                    )}
                 </div>
 
                 {!loading && !error && results && (

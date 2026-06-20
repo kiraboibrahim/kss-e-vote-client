@@ -39,3 +39,13 @@ export interface CandidateResults {
 }
 
 export type UserRole = "voter" | "admin";
+
+export interface Election {
+    id: number;
+    title: string;
+    description: string;
+    is_active: boolean;
+    is_demo: boolean;
+    created_at: string;
+}
+

@@ -1,31 +1,50 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Candidate } from '@/app/lib/types';
-import { fetchAllCandidates } from '@/app/lib/candidates';
+import { Candidate, Election } from '@/app/lib/types';
+import { fetchAllCandidates, fetchElections } from '@/app/lib/candidates';
 
 export default function CandidatesPage() {
     const [candidates, setCandidates] = useState<Candidate[]>([]);
+    const [elections, setElections] = useState<Election[]>([]);
+    const [selectedElectionId, setSelectedElectionId] = useState<number | undefined>(undefined);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Fetch candidates from backend
-    const loadCandidates = async () => {
-        try {
-            setLoading(true);
-            const data = await fetchAllCandidates();
-            setCandidates(data.results);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Initial load
+    // Fetch elections on mount
     useEffect(() => {
-        loadCandidates();
+        const loadInitialData = async () => {
+            try {
+                setLoading(true);
+                const electionsList = await fetchElections();
+                setElections(electionsList);
+                const active = electionsList.find(e => e.is_active);
+                setSelectedElectionId(active?.id || electionsList[0]?.id);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An error occurred loading elections');
+                setLoading(false);
+            }
+        };
+        loadInitialData();
     }, []);
+
+    // Load candidates when selectedElectionId changes
+    useEffect(() => {
+        if (selectedElectionId !== undefined) {
+            const loadCandidates = async () => {
+                try {
+                    setLoading(true);
+                    const data = await fetchAllCandidates(selectedElectionId);
+                    setCandidates(data.results);
+                } catch (err) {
+                    setError(err instanceof Error ? err.message : 'An error occurred loading candidates');
+                } finally {
+                    setLoading(false);
+                }
+            };
+            loadCandidates();
+        }
+    }, [selectedElectionId]);
 
     // Skeleton loader component
     const SkeletonLoader = () => (
@@ -60,7 +79,22 @@ export default function CandidatesPage() {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-white mb-6">Election Candidates</h2>
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+                <h2 className="text-3xl font-bold text-white">Election Candidates</h2>
+                {elections.length > 0 && (
+                    <select
+                        value={selectedElectionId || ''}
+                        onChange={(e) => setSelectedElectionId(Number(e.target.value))}
+                        className="bg-slate-800 text-white border border-slate-700 rounded-lg px-4 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    >
+                        {elections.map((elec) => (
+                            <option key={elec.id} value={elec.id}>
+                                {elec.title} {elec.is_active ? '(Active)' : ''} {elec.is_demo ? '(Demo)' : ''}
+                            </option>
+                        ))}
+                    </select>
+                )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {loading ? (
                     Array.from({ length: 4 }).map((_, index) => (
