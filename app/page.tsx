@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Mail, Lock, Loader2 } from 'lucide-react';
+import { Mail, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import KSSLogo from "@/app/kss-logo.png";
 import { authenticate } from './lib/auth';
@@ -10,7 +10,6 @@ import { storeVoter } from './lib/utils';
 
 export default function LoginPage() {
     const [studentId, setStudentId] = useState('');
-    const [pin, setPin] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [selectedRole, setSelectedRole] = useState<UserRole>('voter');
@@ -24,7 +23,6 @@ export default function LoginPage() {
         try {
             const result = await authenticate(selectedRole, {
                 studentId: selectedRole === 'voter' ? studentId : undefined,
-                pin: selectedRole === 'voter' ? pin : undefined,
                 email: selectedRole === 'admin' ? email : undefined,
                 password: selectedRole === 'admin' ? password : undefined,
             });
@@ -108,26 +106,13 @@ export default function LoginPage() {
 
                                 {/* Student ID Input */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1 ml-1">Student ID</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1 ml-1">Voter Number</label>
                                     <input
                                         type="text"
                                         value={studentId}
                                         onChange={(e) => setStudentId(e.target.value)}
-                                        placeholder="Enter your Student ID"
+                                        placeholder="Enter your Voter Number"
                                         className="w-full px-6 py-4 rounded-xl border-2 border-yellow-400 bg-slate-700 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors"
-                                    />
-                                </div>
-
-                                {/* PIN Input */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1 ml-1">Secret PIN</label>
-                                    <input
-                                        type="password"
-                                        value={pin}
-                                        onChange={(e) => setPin(e.target.value)}
-                                        placeholder="Enter your 4-digit PIN from your voter slip"
-                                        maxLength={10}
-                                        className="w-full px-6 py-4 rounded-xl border-2 border-yellow-400 bg-slate-700 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors tracking-widest"
                                     />
                                 </div>
                             </>
@@ -151,13 +136,12 @@ export default function LoginPage() {
 
                                 {/* Password Input */}
                                 <div className="relative">
-                                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                                     <input
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="Enter your password"
-                                        className="w-full pl-12 pr-6 py-4 rounded-xl border-2 border-yellow-400 bg-slate-700 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors"
+                                        className="w-full px-6 py-4 rounded-xl border-2 border-yellow-400 bg-slate-700 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors"
                                     />
                                 </div>
                             </>
