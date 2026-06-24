@@ -134,18 +134,18 @@ const PositionCard = ({
     selectedCandidateId?: number;
     onVoteSelect: (positionId: number, candidateId: number) => void
 }) => (
-    <div id={`position-${positionId}`} className="bg-slate-800 rounded-xl p-6 shadow-lg scroll-mt-24">
-        <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-                <h3 className="text-2xl font-bold text-yellow-400">{position.title}</h3>
-                {selectedCandidateId && (
-                    <div className="flex items-center gap-2 text-green-400">
-                        <Check size={20} />
-                        <span className="text-sm font-semibold">Voted</span>
-                    </div>
-                )}
+    <div id={`position-${positionId}`} className="bg-slate-800 rounded-xl p-6 shadow-lg scroll-mt-24 overflow-hidden border border-slate-700/40">
+        <div className="sticky top-0 z-10 -mx-6 -mt-6 px-6 py-4 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/60 mb-6 rounded-t-xl flex items-center justify-between">
+            <div className="min-w-0 pr-4">
+                <h3 className="text-2xl font-bold text-yellow-400 truncate">{position.title}</h3>
+                <p className="text-gray-400 text-xs mt-1 truncate">{position.description}</p>
             </div>
-            <p className="text-gray-400">{position.description}</p>
+            {selectedCandidateId && (
+                <div className="flex items-center gap-2 text-green-400 bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20 shrink-0">
+                    <Check size={16} className="stroke-[3]" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Voted</span>
+                </div>
+            )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {candidates.map(candidate => (
