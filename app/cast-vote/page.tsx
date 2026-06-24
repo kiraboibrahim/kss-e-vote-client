@@ -434,11 +434,11 @@ export default function CastVotePage() {
                 {positionsWithCandidates.length > 0 && (
                     <div className="flex flex-col lg:flex-row gap-8 items-start">
                         {/* Sidebar (Positions List) */}
-                        <div className="w-full lg:w-80 shrink-0 bg-slate-800/40 border border-slate-700/50 rounded-2xl p-4 lg:sticky lg:top-6">
+                        <div className="w-full lg:w-80 shrink-0 bg-slate-800/40 border border-slate-700/50 rounded-2xl p-4 lg:sticky lg:top-6 lg:max-h-[calc(100vh-48px)] lg:flex lg:flex-col">
                             <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3 px-2 hidden lg:block">
                                 Ballot Positions
                             </h3>
-                            <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 custom-scrollbar scroll-smooth">
+                            <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden pb-2 lg:pb-0 pr-0 lg:pr-1 custom-scrollbar scroll-smooth lg:flex-1">
                                 {positionsWithCandidates.map((position, index) => {
                                     const selections = selectedVotes[position.id] || [];
                                     const required = position.required_selections || 1;
