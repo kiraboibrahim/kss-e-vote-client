@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Check, AlertCircle, CheckCircle, Info, Loader2, X, ListTodo } from 'lucide-react';
-import { castVote, fetchPositions } from '../lib/candidates';
+import { Check, AlertCircle, CheckCircle, Info, Loader2, X, ListTodo, LogOut } from 'lucide-react';
+import { castVote, fetchPositions, fetchVoterStatus } from '../lib/candidates';
 import { getVoter } from '../lib/utils';
 
 interface Candidate {
@@ -48,10 +48,10 @@ const ErrorState = ({ error }: { error: string }) => (
 );
 
 const SuccessState = () => (
-    <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="bg-slate-800 rounded-2xl p-12 text-center max-w-2xl">
+    <div className="flex items-center justify-center min-h-[60vh] p-6">
+        <div className="bg-slate-800 rounded-2xl p-12 text-center max-w-2xl shadow-2xl">
             <div className="flex justify-center mb-6">
-                <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/20">
                     <CheckCircle size={60} className="text-white" />
                 </div>
             </div>
@@ -59,11 +59,21 @@ const SuccessState = () => (
             <p className="text-gray-300 text-lg mb-6">
                 Thank you for participating in the KSS student elections. Your vote has been recorded securely.
             </p>
-            <div className="bg-blue-900/30 border border-blue-500/50 rounded-xl p-4 mb-6">
+            <div className="bg-blue-900/30 border border-blue-500/50 rounded-xl p-4 mb-8">
                 <p className="text-blue-300 text-sm">
                     Results will be announced after voting closes.
                 </p>
             </div>
+            <button
+                onClick={() => {
+                    localStorage.removeItem("voter");
+                    window.location.href = '/';
+                }}
+                className="px-8 py-3 bg-red-600 hover:bg-red-750 text-white rounded-xl font-bold transition-all shadow-md cursor-pointer inline-flex items-center gap-2"
+            >
+                <LogOut size={18} />
+                Logout / Exit Ballot
+            </button>
         </div>
     </div>
 );
@@ -317,8 +327,18 @@ export default function CastVotePage() {
             try {
                 setLoading(true);
                 setError(null);
-                const positionsData = await fetchPositions();
-                console.log(positionsData);
+                const [positionsData, voterStatusData] = await Promise.all([
+                    fetchPositions(),
+                    fetchVoterStatus()
+                ]);
+                console.log('Positions data:', positionsData);
+                console.log('Voter status data:', voterStatusData);
+                
+                // If the voter has already voted, set votingComplete to true immediately
+                if (voterStatusData.voted_positions.length > 0 || voterStatusData.votes_cast > 0) {
+                    setVotingComplete(true);
+                }
+                
                 setPositionsWithCandidates(positionsData.results);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Failed to load voting data');

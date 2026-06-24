@@ -117,3 +117,31 @@ export async function castVote(votes: { votes: { post: number; candidate: number
         data: data.data
     };
 }
+
+export interface VoterStatus {
+    eligible_positions: { id: number; title: string }[];
+    voted_positions: string[];
+    votes_cast: number;
+}
+
+export async function fetchVoterStatus(): Promise<VoterStatus> {
+    const token = getAccessToken();
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/voter/status/`, { headers });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch voter status');
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch voter status');
+    }
+    return data.data;
+}
