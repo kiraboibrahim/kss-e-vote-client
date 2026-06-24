@@ -27,7 +27,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 flex flex-col">
+        <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-slate-900 flex flex-col">
             {/* Header */}
             <div className="bg-slate-800 shadow-lg border-b border-slate-700/40 shrink-0 z-10">
                 <div className="max-w-[1440px] mx-auto px-6 py-4 flex items-center justify-between">

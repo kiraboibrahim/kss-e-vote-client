@@ -439,7 +439,7 @@ export default function CastVotePage() {
 
     return (
         <>
-            <div className="max-w-[1440px] mx-auto px-6 w-full flex-1 flex flex-col lg:flex-row min-h-0 lg:h-[calc(100vh-120px)] overflow-hidden gap-8 py-8">
+            <div className="max-w-[1440px] mx-auto px-6 w-full flex-1 flex flex-col lg:flex-row min-h-0 lg:h-full overflow-hidden gap-8 py-8">
                 {/* Left Column: Sidebar (Positions List) */}
                 {positionsWithCandidates.length > 0 && (
                     <div className="w-full lg:w-80 shrink-0 bg-slate-800/40 border border-slate-700/50 rounded-2xl p-4 lg:h-full lg:flex lg:flex-col min-h-0">
