@@ -30,7 +30,16 @@ export async function fetchPositions(electionId?: number): Promise<PositionResul
     const url = electionId
         ? `${API_BASE_URL}/positions/?election_id=${electionId}`
         : `${API_BASE_URL}/positions`;
-    const response = await fetch(url);
+        
+    const token = getAccessToken();
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, { headers });
 
     if (!response.ok) {
         throw new Error('Failed to fetch positions');
