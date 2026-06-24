@@ -64,12 +64,23 @@ const SkeletonLoader = () => (
     </div>
 );
 
+// Helper to resolve candidate photo URL
+const getCandidatePhotoUrl = (photoPath: string) => {
+    if (!photoPath) return 'https://placehold.net/avatar-5.png';
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+        return photoPath;
+    }
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+    const baseUrl = apiBaseUrl.replace(/\/api\/?$/, '');
+    return `${baseUrl}${photoPath.startsWith('/') ? '' : '/'}${photoPath}`;
+};
+
 // Candidate Card Component
 const CandidateCard = ({ candidate }: { candidate: Candidate }) => (
     <div className="bg-slate-700 rounded-lg p-4 space-y-3 hover:bg-slate-600 transition-colors">
         <div className="flex items-start gap-4">
             <img
-                src={candidate.photo || 'https://placehold.net/avatar-5.png'}
+                src={getCandidatePhotoUrl(candidate.photo)}
                 alt={candidate.name}
                 className="w-16 h-16 rounded-full object-cover border-2 border-yellow-400"
                 onError={(e) => {
