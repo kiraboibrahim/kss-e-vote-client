@@ -225,49 +225,19 @@ const WizardNavigationTabs = ({
     );
 };
 
-const IncompleteWarning = ({
-    show,
-    positions,
-    selectedVotes,
-    onStepSelect
-}: {
-    show: boolean;
-    positions: Position[];
-    selectedVotes: { [positionId: number]: number[] };
-    onStepSelect: (index: number) => void;
-}) => {
+const IncompleteWarning = ({ show }: { show: boolean }) => {
     if (!show) return null;
 
-    const incompletePositions = positions.map((pos, idx) => {
-        const selections = selectedVotes[pos.id] || [];
-        const required = pos.required_selections || 1;
-        return { pos, idx, selections, required };
-    }).filter(item => item.selections.length < item.required);
-
     return (
-        <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border border-amber-500/30 backdrop-blur-md rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg transition-all duration-300">
-            <div className="flex items-start gap-4">
-                <div className="relative flex items-center justify-center p-2.5 bg-amber-500/20 rounded-xl text-amber-400 mt-0.5 shadow-inner">
-                    <AlertCircle size={22} className="animate-pulse" />
-                </div>
-                <div>
-                    <h4 className="text-amber-300 font-bold text-lg leading-snug">Ballot Progress Incomplete</h4>
-                    <p className="text-gray-300 text-sm mt-0.5">
-                        Please vote for all required candidates in each position to cast your ballot. Click a position below to select:
-                    </p>
-                    <div className="flex flex-wrap gap-2 mt-3">
-                        {incompletePositions.map(({ pos, idx, selections, required }) => (
-                            <button
-                                key={pos.id}
-                                onClick={() => onStepSelect(idx)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800/80 hover:bg-slate-700 border border-amber-500/20 hover:border-amber-400/40 rounded-full text-xs font-medium text-amber-300 transition-all cursor-pointer"
-                            >
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
-                                {pos.title} ({selections.length}/{required})
-                            </button>
-                        ))}
-                    </div>
-                </div>
+        <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border border-amber-500/30 backdrop-blur-md rounded-2xl p-5 flex items-start gap-4 shadow-lg transition-all duration-300">
+            <div className="relative flex items-center justify-center p-2.5 bg-amber-500/20 rounded-xl text-amber-400 mt-0.5 shadow-inner shrink-0">
+                <AlertCircle size={22} className="animate-pulse" />
+            </div>
+            <div>
+                <h4 className="text-amber-300 font-bold text-lg leading-snug">Ballot Progress Incomplete</h4>
+                <p className="text-gray-300 text-sm mt-0.5">
+                    Please vote for all required candidates in each position before submitting your ballot.
+                </p>
             </div>
         </div>
     );
@@ -503,12 +473,7 @@ export default function CastVotePage() {
                     totalPositions={positionsWithCandidates.length}
                 />
 
-                <IncompleteWarning
-                    show={!allPositionsVoted}
-                    positions={positionsWithCandidates}
-                    selectedVotes={selectedVotes}
-                    onStepSelect={setActiveStep}
-                />
+                <IncompleteWarning show={!allPositionsVoted} />
 
                 {positionsWithCandidates.length > 0 && (
                     <>
