@@ -220,13 +220,13 @@ const ConfirmationModal = ({
 
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 rounded-2xl p-8 max-w-2xl w-full">
-                <h3 className="text-2xl font-bold text-white mb-4">Confirm Your Votes</h3>
-                <p className="text-gray-300 mb-6">
+            <div className="bg-slate-800 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+                <h3 className="text-2xl font-bold text-white mb-2 shrink-0">Confirm Your Votes</h3>
+                <p className="text-gray-300 mb-4 text-sm shrink-0">
                     Please review your selections before submitting. Once submitted, votes cannot be changed.
                 </p>
 
-                <div className="bg-slate-700/50 border border-slate-600 rounded-xl p-4 mb-6 space-y-4">
+                <div className="bg-slate-700/50 border border-slate-600 rounded-xl p-4 mb-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
                     {Object.entries(selectedVotes).map(([positionId, candidateId]) => {
                         const position = positionsWithCandidates.find(p => p.id === Number(positionId));
                         const candidate = position?.candidates.find(c => c.id === candidateId);
@@ -259,24 +259,24 @@ const ConfirmationModal = ({
                 </div>
 
                 {error && (
-                    <div className="bg-red-900/30 border border-red-500/50 rounded-xl p-4 mb-4">
+                    <div className="bg-red-900/30 border border-red-500/50 rounded-xl p-4 mb-4 shrink-0">
                         <p className="text-red-300 font-semibold">Error</p>
                         <p className="text-red-200 text-sm">{error}</p>
                     </div>
                 )}
 
-                <div className="flex gap-4">
+                <div className="flex gap-4 shrink-0">
                     <button
                         onClick={onCancel}
                         disabled={submitting}
-                        className="flex-1 px-6 py-3 bg-slate-600 hover:bg-slate-500 text-white rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 px-6 py-3 bg-slate-600 hover:bg-slate-500 text-white rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                         Review Again
                     </button>
                     <button
                         onClick={onConfirm}
                         disabled={submitting}
-                        className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                     >
                         {submitting && <Loader2 className="w-5 h-5 animate-spin" />}
                         {submitting ? 'Submitting...' : 'Confirm & Submit'}
