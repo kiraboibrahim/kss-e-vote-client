@@ -2,6 +2,7 @@ export interface Position {
     id: number;
     title: string;
     description: string;
+    required_selections: number;
     total_votes: number;
     candidates: Array<Candidate>;
 };
@@ -20,6 +21,7 @@ export interface PositionWithCandidates {
     id: number;
     title: string;
     description: string;
+    required_selections: number;
     candidate_count: number;
     candidates: Candidate[];
 };

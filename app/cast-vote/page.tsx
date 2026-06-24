@@ -17,6 +17,7 @@ interface Position {
     id: number;
     title: string;
     description: string;
+    required_selections: number;
     candidate_count: number;
     candidates: Candidate[];
 }
@@ -125,40 +126,51 @@ const PositionCard = ({
     positionId,
     position,
     candidates,
-    selectedCandidateId,
+    selectedCandidateIds = [],
     onVoteSelect
 }: {
     positionId: number;
     position: Position;
     candidates: Candidate[];
-    selectedCandidateId?: number;
+    selectedCandidateIds?: number[];
     onVoteSelect: (positionId: number, candidateId: number) => void
-}) => (
-    <div className="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700/40">
-        <div className="border-b border-slate-755 pb-4 mb-6 flex items-center justify-between">
-            <div className="min-w-0 pr-4">
-                <h3 className="text-2xl font-bold text-yellow-400">{position.title}</h3>
-                <p className="text-gray-400 text-sm mt-1">{position.description}</p>
-            </div>
-            {selectedCandidateId && (
-                <div className="flex items-center gap-2 text-green-400 bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20 shrink-0">
-                    <Check size={16} className="stroke-[3]" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Voted</span>
+}) => {
+    const required = position.required_selections || 1;
+    const currentSelectedCount = selectedCandidateIds.length;
+    const isCompleted = currentSelectedCount === required;
+
+    return (
+        <div className="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700/40">
+            <div className="border-b border-slate-700 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="min-w-0 pr-4">
+                    <h3 className="text-2xl font-bold text-yellow-400">{position.title}</h3>
+                    <p className="text-gray-400 text-sm mt-1">{position.description}</p>
+                    {required > 1 && (
+                        <p className="text-blue-400 text-sm font-semibold mt-1">
+                            Choose exactly {required} candidates (Selected: {currentSelectedCount}/{required})
+                        </p>
+                    )}
                 </div>
-            )}
+                {isCompleted && (
+                    <div className="flex items-center gap-2 text-green-400 bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20 shrink-0 self-start sm:self-center">
+                        <Check size={16} className="stroke-[3]" />
+                        <span className="text-xs font-bold uppercase tracking-wider">Voted</span>
+                    </div>
+                )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {candidates.map(candidate => (
+                    <CandidateButton
+                        key={candidate.id}
+                        candidate={candidate}
+                        isSelected={selectedCandidateIds.includes(candidate.id)}
+                        onSelect={() => onVoteSelect(positionId, candidate.id)}
+                    />
+                ))}
+            </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {candidates.map(candidate => (
-                <CandidateButton
-                    key={candidate.id}
-                    candidate={candidate}
-                    isSelected={selectedCandidateId === candidate.id}
-                    onSelect={() => onVoteSelect(positionId, candidate.id)}
-                />
-            ))}
-        </div>
-    </div>
-);
+    );
+};
 
 const WizardNavigationTabs = ({
     positions,
@@ -168,7 +180,7 @@ const WizardNavigationTabs = ({
 }: {
     positions: Position[];
     activeStep: number;
-    selectedVotes: { [positionId: number]: number };
+    selectedVotes: { [positionId: number]: number[] };
     onStepSelect: (index: number) => void;
 }) => {
     useEffect(() => {
@@ -181,7 +193,9 @@ const WizardNavigationTabs = ({
     return (
         <div className="flex items-center gap-2 overflow-x-auto pb-4 custom-scrollbar scroll-smooth">
             {positions.map((position, index) => {
-                const isSelected = selectedVotes[position.id] !== undefined;
+                const selections = selectedVotes[position.id] || [];
+                const required = position.required_selections || 1;
+                const isCompleted = selections.length === required;
                 const isActive = index === activeStep;
                 
                 return (
@@ -192,13 +206,18 @@ const WizardNavigationTabs = ({
                         className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-bold border whitespace-nowrap transition-all duration-300 cursor-pointer shrink-0 ${
                             isActive
                                 ? 'bg-yellow-400 border-yellow-400 text-black shadow-lg shadow-yellow-400/20 scale-[1.02]'
-                                : isSelected
-                                    ? 'bg-slate-800/80 border-slate-700 text-green-405 hover:bg-slate-700/80 hover:text-green-400'
+                                : isCompleted
+                                    ? 'bg-slate-800/80 border-slate-700 text-green-400 hover:bg-slate-700/80 hover:text-green-400'
                                     : 'bg-slate-800/40 border-slate-700/50 text-gray-400 hover:text-white hover:bg-slate-850'
                         }`}
                     >
-                        {isSelected && <Check size={14} className="stroke-[3]" />}
+                        {isCompleted && <Check size={14} className="stroke-[3]" />}
                         <span>{position.title}</span>
+                        {required > 1 && !isCompleted && (
+                            <span className="text-xs bg-slate-750 text-gray-300 px-1.5 py-0.5 rounded-full ml-1 font-semibold">
+                                {selections.length}/{required}
+                            </span>
+                        )}
                     </button>
                 );
             })}
@@ -232,7 +251,7 @@ const ConfirmationModal = ({
     onConfirm
 }: {
     show: boolean;
-    selectedVotes: { [positionId: number]: number };
+    selectedVotes: { [positionId: number]: number[] };
     positionsWithCandidates: Position[];
     error: string | null;
     submitting: boolean;
@@ -250,32 +269,46 @@ const ConfirmationModal = ({
                 </p>
 
                 <div className="bg-slate-700/50 border border-slate-600 rounded-xl p-4 mb-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
-                    {Object.entries(selectedVotes).map(([positionId, candidateId]) => {
+                    {Object.entries(selectedVotes).map(([positionId, candidateIds]) => {
                         const position = positionsWithCandidates.find(p => p.id === Number(positionId));
-                        const candidate = position?.candidates.find(c => c.id === candidateId);
+                        if (!position) return null;
+                        
                         return (
-                            <div key={positionId} className="flex items-center justify-between border-b border-slate-700/60 last:border-b-0 pb-3 last:pb-0">
-                                <div>
-                                    <p className="text-xs text-yellow-400 font-semibold uppercase tracking-wider">{position?.title}</p>
-                                    <div className="flex items-center gap-3 mt-2">
-                                        {candidate?.photo ? (
-                                            <img 
-                                                src={candidate.photo} 
-                                                alt={candidate.name} 
-                                                className="w-10 h-10 rounded-full object-cover border border-slate-500"
-                                            />
-                                        ) : (
-                                            <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-white font-bold">
-                                                {candidate?.name?.charAt(0)}
-                                            </div>
-                                        )}
-                                        <div>
-                                            <p className="text-white font-bold text-base">{candidate?.name}</p>
-                                            <p className="text-xs text-gray-400">{candidate?._class} {candidate?.stream ? `(${candidate.stream})` : ''}</p>
-                                        </div>
-                                    </div>
+                            <div key={positionId} className="border-b border-slate-700/60 last:border-b-0 pb-3 last:pb-0">
+                                <p className="text-xs text-yellow-400 font-semibold uppercase tracking-wider">{position.title}</p>
+                                <div className="mt-2 space-y-2">
+                                    {candidateIds.length === 0 ? (
+                                        <p className="text-sm text-red-400 italic">No selection made</p>
+                                    ) : (
+                                        candidateIds.map(candidateId => {
+                                            const candidate = position.candidates.find(c => c.id === candidateId);
+                                            if (!candidate) return null;
+                                            
+                                            return (
+                                                <div key={candidateId} className="flex items-center justify-between pl-3 border-l-2 border-slate-600 py-1">
+                                                    <div className="flex items-center gap-3">
+                                                        {candidate.photo ? (
+                                                            <img 
+                                                                src={candidate.photo} 
+                                                                alt={candidate.name} 
+                                                                className="w-10 h-10 rounded-full object-cover border border-slate-500"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-white font-bold">
+                                                                {candidate.name?.charAt(0)}
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <p className="text-white font-bold text-sm">{candidate.name}</p>
+                                                            <p className="text-xs text-gray-400">{candidate._class} {candidate.stream ? `(${candidate.stream})` : ''}</p>
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-xs font-semibold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">Selected</span>
+                                                </div>
+                                            );
+                                        })
+                                    )}
                                 </div>
-                                <span className="text-xs font-semibold text-green-400 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20">Selected</span>
                             </div>
                         );
                     })}
@@ -311,18 +344,20 @@ const ConfirmationModal = ({
 };
 
 // Helper function to transform votes to backend format
-function transformVotesToBackendFormat(votes: { [positionId: number]: number }) {
+function transformVotesToBackendFormat(votes: { [positionId: number]: number[] }) {
     return {
-        votes: Object.entries(votes).map(([positionId, candidateId]) => ({
-            post: Number(positionId),
-            candidate: candidateId
-        }))
+        votes: Object.entries(votes).flatMap(([positionId, candidateIds]) => 
+            candidateIds.map(candidateId => ({
+                post: Number(positionId),
+                candidate: candidateId
+            }))
+        )
     };
 }
 
 export default function CastVotePage() {
     const [positionsWithCandidates, setPositionsWithCandidates] = useState<Position[]>([]);
-    const [selectedVotes, setSelectedVotes] = useState<{ [positionId: number]: number }>({});
+    const [selectedVotes, setSelectedVotes] = useState<{ [positionId: number]: number[] }>({});
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [votingComplete, setVotingComplete] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -350,15 +385,52 @@ export default function CastVotePage() {
     }, []);
 
     const handleVoteSelect = (positionId: number, candidateId: number) => {
-        setSelectedVotes(prev => ({
-            ...prev,
-            [positionId]: candidateId
-        }));
+        const position = positionsWithCandidates.find(p => p.id === positionId);
+        if (!position) return;
+        const required = position.required_selections || 1;
+
+        setSelectedVotes(prev => {
+            const currentSelections = prev[positionId] || [];
+            if (currentSelections.includes(candidateId)) {
+                // Deselect
+                return {
+                    ...prev,
+                    [positionId]: currentSelections.filter(id => id !== candidateId)
+                };
+            } else {
+                // Select
+                if (required === 1) {
+                    // Replace selection
+                    return {
+                        ...prev,
+                        [positionId]: [candidateId]
+                    };
+                } else {
+                    // For multi-select, only allow selecting up to 'required'
+                    if (currentSelections.length < required) {
+                        return {
+                            ...prev,
+                            [positionId]: [...currentSelections, candidateId]
+                        };
+                    } else {
+                        // FIFO replacement of candidate selections
+                        return {
+                            ...prev,
+                            [positionId]: [...currentSelections.slice(1), candidateId]
+                        };
+                    }
+                }
+            }
+        });
     };
 
     const allPositionsVoted = positionsWithCandidates.length > 0 && positionsWithCandidates.every(
-        position => selectedVotes[position.id] !== undefined
+        position => (selectedVotes[position.id] || []).length === (position.required_selections || 1)
     );
+
+    const fullyVotedPositionsCount = positionsWithCandidates.filter(
+        position => (selectedVotes[position.id] || []).length === (position.required_selections || 1)
+    ).length;
 
     const confirmVoteSubmission = async () => {
         setSubmitting(true);
@@ -395,7 +467,7 @@ export default function CastVotePage() {
         <>
             <div className="space-y-6">
                 <VotingHeader
-                    votedCount={Object.keys(selectedVotes).length}
+                    votedCount={fullyVotedPositionsCount}
                     totalPositions={positionsWithCandidates.length}
                 />
 
@@ -413,7 +485,7 @@ export default function CastVotePage() {
                                 positionId={activePosition.id}
                                 position={activePosition}
                                 candidates={activePosition.candidates}
-                                selectedCandidateId={selectedVotes[activePosition.id]}
+                                selectedCandidateIds={selectedVotes[activePosition.id]}
                                 onVoteSelect={handleVoteSelect}
                             />
                         )}
