@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Check, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { Check, AlertCircle, CheckCircle, Loader2, X, ListTodo } from 'lucide-react';
 import { castVote, fetchPositions } from '../lib/candidates';
 import { getVoter } from '../lib/utils';
 
@@ -99,18 +99,19 @@ const CandidateButton = ({
 }) => (
     <button
         onClick={onSelect}
-        className={`relative p-6 rounded-xl border-2 transition-all duration-300 text-left ${isSelected
-            ? 'border-yellow-400 bg-yellow-400/10 shadow-lg shadow-yellow-400/20'
+        className={`relative p-6 rounded-xl border-2 transition-all duration-300 text-left cursor-pointer ${isSelected
+            ? 'border-yellow-400 bg-yellow-400/10 shadow-lg shadow-yellow-400/20 scale-[1.02]'
             : 'border-slate-600 hover:border-slate-500 hover:bg-slate-700/50'
             }`}
     >
         {isSelected && (
-            <div className="absolute top-4 right-4 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-                <Check size={20} className="text-black" />
+            <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-yellow-400 px-3 py-1 rounded-full text-black font-extrabold text-xs uppercase tracking-wider shadow-md">
+                <Check size={14} className="stroke-[3]" />
+                Selected
             </div>
         )}
         <div className="flex items-start gap-4">
-            <img src={candidate.photo} alt={candidate.name} className="w-16 h-16 rounded-full object-cover" />
+            <img src={candidate.photo} alt={candidate.name} className="w-16 h-16 rounded-full object-cover border border-slate-600" />
             <div className="flex-1">
                 <h4 className="text-xl font-bold text-white mb-1">{candidate.name}</h4>
                 <p className="text-gray-400 text-sm mb-2">{candidate._class}</p>
@@ -133,7 +134,7 @@ const PositionCard = ({
     selectedCandidateId?: number;
     onVoteSelect: (positionId: number, candidateId: number) => void
 }) => (
-    <div className="bg-slate-800 rounded-xl p-6 shadow-lg">
+    <div id={`position-${positionId}`} className="bg-slate-800 rounded-xl p-6 shadow-lg scroll-mt-24">
         <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
                 <h3 className="text-2xl font-bold text-yellow-400">{position.title}</h3>
@@ -158,6 +159,85 @@ const PositionCard = ({
         </div>
     </div>
 );
+
+const BallotNavigator = ({
+    positions,
+    selectedVotes,
+    onNavigate
+}: {
+    positions: Position[];
+    selectedVotes: { [positionId: number]: number };
+    onNavigate: (positionId: number) => void;
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end">
+            {/* Expanded List */}
+            {isOpen && (
+                <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 shadow-2xl w-80 max-h-[70vh] flex flex-col overflow-hidden mb-3 animate-in slide-in-from-bottom-5 fade-in duration-200">
+                    <div className="flex items-center justify-between border-b border-slate-700 pb-3 mb-3">
+                        <h4 className="font-bold text-white text-lg flex items-center gap-2">
+                            <ListTodo className="w-5 h-5 text-yellow-400" />
+                            Ballot Progress
+                        </h4>
+                        <button 
+                            onClick={() => setIsOpen(false)}
+                            className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition-colors cursor-pointer"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <div className="overflow-y-auto space-y-2 custom-scrollbar pr-1 flex-1">
+                        {positions.map((position) => {
+                            const selectedCandidateId = selectedVotes[position.id];
+                            const selectedCandidate = position.candidates.find(c => c.id === selectedCandidateId);
+                            
+                            return (
+                                <button
+                                    key={position.id}
+                                    onClick={() => {
+                                        onNavigate(position.id);
+                                        setIsOpen(false);
+                                    }}
+                                    className="w-full flex items-center justify-between text-left p-3 rounded-xl bg-slate-700/40 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600 transition-all group cursor-pointer"
+                                >
+                                    <div className="flex-1 min-w-0 pr-2">
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-yellow-400/80 group-hover:text-yellow-400 transition-colors">
+                                            {position.title}
+                                        </p>
+                                        <p className="text-sm font-bold text-white truncate">
+                                            {selectedCandidate ? selectedCandidate.name : 'No selection'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        {selectedCandidate ? (
+                                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+                                                <Check className="w-3.5 h-3.5" />
+                                            </span>
+                                        ) : (
+                                            <span className="flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                                        )}
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* Toggle Button */}
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 px-5 py-3.5 bg-yellow-400 hover:bg-yellow-500 text-black font-bold rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer border border-yellow-500/30"
+            >
+                <ListTodo className="w-5 h-5" />
+                <span>Progress ({Object.keys(selectedVotes).length}/{positions.length})</span>
+            </button>
+        </div>
+    );
+};
 
 const SubmitButton = ({
     allPositionsVoted,
@@ -362,6 +442,13 @@ export default function CastVotePage() {
         }
     };
 
+    const handleNavigate = (positionId: number) => {
+        const element = document.getElementById(`position-${positionId}`);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
     if (votingComplete) return <SuccessState />;
     if (loading) return <LoadingState />;
     if (error) return <ErrorState error={error} />;
@@ -393,6 +480,12 @@ export default function CastVotePage() {
 
                 <IncompleteWarning show={!allPositionsVoted} />
             </div>
+
+            <BallotNavigator
+                positions={positionsWithCandidates}
+                selectedVotes={selectedVotes}
+                onNavigate={handleNavigate}
+            />
 
             <ConfirmationModal
                 show={showConfirmation}
