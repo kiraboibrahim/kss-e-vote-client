@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Check, AlertCircle, CheckCircle, Loader2, X, ListTodo } from 'lucide-react';
+import { Check, AlertCircle, CheckCircle, Info, Loader2, X, ListTodo } from 'lucide-react';
 import { castVote, fetchPositions } from '../lib/candidates';
 import { getVoter } from '../lib/utils';
 
@@ -68,24 +68,9 @@ const SuccessState = () => (
     </div>
 );
 
-const VotingHeader = ({
-    votedCount,
-    totalPositions
-}: {
-    votedCount: number;
-    totalPositions: number
-}) => (
-    <div className="flex items-center justify-between">
-        <div>
-            <h2 className="text-3xl font-bold text-white mb-2">Cast Your Vote</h2>
-            <p className="text-gray-400">Select one candidate for each position</p>
-        </div>
-        <div className="text-right">
-            <p className="text-sm text-gray-400">Positions Voted</p>
-            <p className="text-2xl font-bold text-yellow-400">
-                {votedCount} / {totalPositions}
-            </p>
-        </div>
+const VotingHeader = () => (
+    <div className="pb-3 border-b border-slate-700/40">
+        <h2 className="text-2xl font-bold text-white tracking-tight">KSS Student Ballot</h2>
     </div>
 );
 
@@ -100,23 +85,23 @@ const CandidateButton = ({
 }) => (
     <button
         onClick={onSelect}
-        className={`relative p-6 rounded-xl border-2 transition-all duration-300 text-left cursor-pointer ${isSelected
+        className={`relative p-4 rounded-xl border-2 transition-all duration-300 text-left cursor-pointer ${isSelected
             ? 'border-yellow-400 bg-yellow-400/10 shadow-lg shadow-yellow-400/20 scale-[1.02]'
             : 'border-slate-600 hover:border-slate-500 hover:bg-slate-700/50'
             }`}
     >
         {isSelected && (
-            <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-yellow-400 px-3 py-1 rounded-full text-black font-extrabold text-xs uppercase tracking-wider shadow-md">
-                <Check size={14} className="stroke-[3]" />
+            <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-yellow-400 px-2 py-0.5 rounded-md text-black font-extrabold text-[10px] uppercase tracking-wider shadow-md">
+                <Check size={12} className="stroke-[3]" />
                 Selected
             </div>
         )}
-        <div className="flex items-start gap-4">
-            <img src={candidate.photo} alt={candidate.name} className="w-16 h-16 rounded-full object-cover border border-slate-600" />
-            <div className="flex-1">
-                <h4 className="text-xl font-bold text-white mb-1">{candidate.name}</h4>
-                <p className="text-gray-400 text-sm mb-2">{candidate._class}</p>
-                <p className="text-gray-300 italic text-sm">&quot;{candidate.slogan}&quot;</p>
+        <div className="flex items-center gap-4">
+            <img src={candidate.photo} alt={candidate.name} className="w-16 h-16 rounded-xl object-cover border border-slate-600 shrink-0 shadow-sm" />
+            <div className="flex-1 min-w-0">
+                <h4 className="text-lg font-bold text-white mb-0.5 truncate">{candidate.name}</h4>
+                <p className="text-gray-400 text-xs mb-1 truncate">{candidate._class}</p>
+                <p className="text-gray-300 italic text-xs truncate">&quot;{candidate.slogan}&quot;</p>
             </div>
         </div>
     </button>
@@ -140,25 +125,42 @@ const PositionCard = ({
     const isCompleted = currentSelectedCount === required;
 
     return (
-        <div className="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700/40">
-            <div className="border-b border-slate-700 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="min-w-0 pr-4">
-                    <h3 className="text-2xl font-bold text-yellow-400">{position.title}</h3>
-                    <p className="text-gray-400 text-sm mt-1">{position.description}</p>
-                    {required > 1 && (
-                        <p className="text-blue-400 text-sm font-semibold mt-1">
-                            Choose exactly {required} candidates (Selected: {currentSelectedCount}/{required})
-                        </p>
+        <div className="bg-slate-800/80 rounded-2xl p-5 shadow-lg border border-slate-700/50">
+            {/* Header */}
+            <div className="border-b border-slate-700/50 pb-3 mb-4 flex items-center justify-between gap-3">
+                <div className="min-w-0 pr-4 flex-1">
+                    <h3 className="text-xl font-black text-white tracking-tight">
+                        Position: <span className="text-yellow-400">{position.title}</span>
+                    </h3>
+                    {position.description && (
+                        <p className="text-slate-300 text-xs mt-0.5 leading-relaxed truncate">{position.description}</p>
                     )}
                 </div>
                 {isCompleted && (
-                    <div className="flex items-center gap-2 text-green-400 bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20 shrink-0 self-start sm:self-center">
-                        <Check size={16} className="stroke-[3]" />
-                        <span className="text-xs font-bold uppercase tracking-wider">Voted</span>
+                    <div className="flex items-center gap-1.5 text-green-400 bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/20 shrink-0">
+                        <Check size={14} className="stroke-[3]" />
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider">Completed</span>
                     </div>
                 )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* Directive Box */}
+            {isCompleted ? (
+                <div className="bg-green-500/10 border border-green-500/25 text-green-400 rounded-xl px-4 py-3 flex items-center gap-3 text-sm mb-4 font-bold shadow-inner">
+                    <CheckCircle size={18} className="shrink-0 text-green-400" />
+                    <span>Selection complete! You have chosen {required} of {required} required candidates.</span>
+                </div>
+            ) : (
+                <div className="bg-yellow-400/10 border border-yellow-400/25 text-yellow-400 rounded-xl px-4 py-3 flex items-center gap-3 text-sm mb-4 font-bold animate-pulse shadow-inner">
+                    <Info size={18} className="shrink-0 text-yellow-400" />
+                    <span>
+                        Selection required: Please select exactly <span className="underline decoration-yellow-400 decoration-2 font-black">{required}</span> {required === 1 ? 'candidate' : 'candidates'} for this position. (Selected: {currentSelectedCount} of {required})
+                    </span>
+                </div>
+            )}
+
+            {/* Candidates Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {candidates.map(candidate => (
                     <CandidateButton
                         key={candidate.id}
@@ -177,16 +179,10 @@ const IncompleteWarning = ({ show }: { show: boolean }) => {
     if (!show) return null;
 
     return (
-        <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border border-amber-500/30 backdrop-blur-md rounded-2xl p-5 flex items-start gap-4 shadow-lg transition-all duration-300">
-            <div className="relative flex items-center justify-center p-2.5 bg-amber-500/20 rounded-xl text-amber-400 mt-0.5 shadow-inner shrink-0">
-                <AlertCircle size={22} className="animate-pulse" />
-            </div>
-            <div>
-                <h4 className="text-amber-300 font-bold text-lg leading-snug">Ballot Progress Incomplete</h4>
-                <p className="text-gray-300 text-sm mt-0.5">
-                    Please vote for all required candidates in each position before submitting your ballot.
-                </p>
-            </div>
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-2.5 flex items-center gap-3 text-amber-400 text-sm">
+            <AlertCircle size={16} className="shrink-0 animate-pulse" />
+            <span className="font-semibold">Ballot Incomplete:</span>
+            <span className="text-slate-350">Please complete all required selections before submitting.</span>
         </div>
     );
 };
@@ -423,107 +419,108 @@ export default function CastVotePage() {
 
     return (
         <>
-            <div className="space-y-6">
-                <VotingHeader
-                    votedCount={fullyVotedPositionsCount}
-                    totalPositions={positionsWithCandidates.length}
-                />
-
-                <IncompleteWarning show={!allPositionsVoted} />
-
+            <div className="max-w-[1440px] mx-auto px-6 w-full flex-1 flex flex-col lg:flex-row min-h-0 lg:h-[calc(100vh-120px)] overflow-hidden gap-8 py-8">
+                {/* Left Column: Sidebar (Positions List) */}
                 {positionsWithCandidates.length > 0 && (
-                    <div className="flex flex-col lg:flex-row gap-8 items-start">
-                        {/* Sidebar (Positions List) */}
-                        <div className="w-full lg:w-80 shrink-0 bg-slate-800/40 border border-slate-700/50 rounded-2xl p-4 lg:sticky lg:top-6 lg:max-h-[calc(100vh-48px)] lg:flex lg:flex-col">
-                            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3 px-2 hidden lg:block">
+                    <div className="w-full lg:w-80 shrink-0 bg-slate-800/40 border border-slate-700/50 rounded-2xl p-4 lg:h-full lg:flex lg:flex-col min-h-0">
+                        <div className="flex items-center justify-between mb-3 px-2 hidden lg:flex">
+                            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400">
                                 Ballot Positions
                             </h3>
-                            <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden pb-2 lg:pb-0 pr-0 lg:pr-1 custom-scrollbar scroll-smooth lg:flex-1">
-                                {positionsWithCandidates.map((position, index) => {
-                                    const selections = selectedVotes[position.id] || [];
-                                    const required = position.required_selections || 1;
-                                    const isCompleted = selections.length === required;
-                                    const isActive = index === activeStep;
-
-                                    return (
-                                        <button
-                                            key={position.id}
-                                            id={`nav-tab-${index}`}
-                                            onClick={() => setActiveStep(index)}
-                                            className={`flex items-center justify-between w-full text-left gap-3 px-4 py-3 rounded-xl text-sm font-bold border transition-all duration-300 cursor-pointer shrink-0 ${
-                                                isActive
-                                                    ? 'bg-yellow-400 border-yellow-400 text-black shadow-lg shadow-yellow-400/10 scale-[1.01]'
-                                                    : isCompleted
-                                                        ? 'bg-slate-800/80 border-slate-700 text-green-400 hover:bg-slate-700/80 hover:text-green-400'
-                                                        : 'bg-slate-850/40 border-slate-700/40 text-gray-400 hover:text-white hover:bg-slate-800/50'
-                                            }`}
-                                        >
-                                            <div className="flex items-center gap-2.5 truncate">
-                                                {isCompleted ? (
-                                                    <Check size={16} className="stroke-[3] text-green-500 shrink-0" />
-                                                ) : (
-                                                    <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-black' : 'bg-gray-600'}`}></span>
-                                                )}
-                                                <span className="truncate">{position.title}</span>
-                                            </div>
-                                            
-                                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                                                isActive 
-                                                    ? 'bg-black/10 text-black' 
-                                                    : isCompleted 
-                                                        ? 'bg-green-500/15 text-green-400' 
-                                                        : 'bg-slate-750 text-gray-300'
-                                            }`}>
-                                                {selections.length}/{required}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <span className="text-xs font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 px-2.5 py-0.5 rounded-md">
+                                {fullyVotedPositionsCount} / {positionsWithCandidates.length}
+                            </span>
                         </div>
+                        <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden pb-2 lg:pb-0 pr-0 lg:pr-1 custom-scrollbar scroll-smooth lg:flex-1 min-h-0">
+                            {positionsWithCandidates.map((position, index) => {
+                                const selections = selectedVotes[position.id] || [];
+                                const required = position.required_selections || 1;
+                                const isCompleted = selections.length === required;
+                                const isActive = index === activeStep;
 
-                        {/* Main Content Area */}
-                        <div className="flex-1 w-full space-y-6">
-                            {activePosition && (
-                                <PositionCard
-                                    positionId={activePosition.id}
-                                    position={activePosition}
-                                    candidates={activePosition.candidates}
-                                    selectedCandidateIds={selectedVotes[activePosition.id]}
-                                    onVoteSelect={handleVoteSelect}
-                                />
-                            )}
-
-                            <div className="flex gap-4 items-center justify-between pt-6 border-t border-slate-700/50">
-                                <button
-                                    onClick={() => setActiveStep(prev => Math.max(0, prev - 1))}
-                                    disabled={activeStep === 0}
-                                    className="px-6 py-3 bg-slate-700 hover:bg-slate-650 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all cursor-pointer"
-                                >
-                                    Back
-                                </button>
-
-                                {activeStep < positionsWithCandidates.length - 1 ? (
+                                return (
                                     <button
-                                        onClick={() => setActiveStep(prev => Math.min(positionsWithCandidates.length - 1, prev + 1))}
-                                        className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black font-bold rounded-xl transition-all cursor-pointer"
-                                    >
-                                        Next Position
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={() => setShowConfirmation(true)}
-                                        disabled={!allPositionsVoted}
-                                        className={`px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${
-                                            allPositionsVoted
-                                                ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl cursor-pointer'
-                                                : 'bg-slate-700 text-gray-500 cursor-not-allowed'
+                                        key={position.id}
+                                        id={`nav-tab-${index}`}
+                                        onClick={() => setActiveStep(index)}
+                                        className={`flex items-center justify-between w-full text-left gap-3 px-4 py-3 rounded-xl text-sm font-bold border transition-all duration-300 cursor-pointer shrink-0 ${
+                                            isActive
+                                                ? 'bg-yellow-400 border-yellow-400 text-black shadow-lg shadow-yellow-400/10 scale-[1.01]'
+                                                : isCompleted
+                                                    ? 'bg-slate-800/80 border-slate-700 text-green-400 hover:bg-slate-700/80 hover:text-green-400'
+                                                    : 'bg-slate-850/40 border-slate-700/40 text-gray-400 hover:text-white hover:bg-slate-800/50'
                                         }`}
                                     >
-                                        Review & Submit Ballot
+                                        <div className="flex items-center gap-2.5 truncate">
+                                            {isCompleted ? (
+                                                <Check size={16} className="stroke-[3] text-green-500 shrink-0" />
+                                            ) : (
+                                                <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-black' : 'bg-gray-600'}`}></span>
+                                            )}
+                                            <span className="truncate">{position.title}</span>
+                                        </div>
+                                        
+                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                                            isActive 
+                                                ? 'bg-black/10 text-black' 
+                                                : isCompleted 
+                                                    ? 'bg-green-500/15 text-green-400' 
+                                                    : 'bg-slate-750 text-gray-300'
+                                        }`}>
+                                            {selections.length}/{required}
+                                        </span>
                                     </button>
-                                )}
-                            </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Right Column: Main Content Area */}
+                {positionsWithCandidates.length > 0 && (
+                    <div className="flex-1 w-full lg:h-full lg:overflow-y-auto custom-scrollbar pr-0 lg:pr-2 flex flex-col gap-6 min-h-0">
+
+                        <IncompleteWarning show={!allPositionsVoted} />
+
+                        {activePosition && (
+                            <PositionCard
+                                positionId={activePosition.id}
+                                position={activePosition}
+                                candidates={activePosition.candidates}
+                                selectedCandidateIds={selectedVotes[activePosition.id]}
+                                onVoteSelect={handleVoteSelect}
+                            />
+                        )}
+
+                        <div className="flex gap-4 items-center justify-between pt-6 border-t border-slate-700/50 mt-auto shrink-0">
+                            <button
+                                onClick={() => setActiveStep(prev => Math.max(0, prev - 1))}
+                                disabled={activeStep === 0}
+                                className="px-6 py-3 bg-slate-700 hover:bg-slate-650 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all cursor-pointer"
+                            >
+                                Back
+                            </button>
+
+                            {activeStep < positionsWithCandidates.length - 1 ? (
+                                <button
+                                    onClick={() => setActiveStep(prev => Math.min(positionsWithCandidates.length - 1, prev + 1))}
+                                    className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black font-bold rounded-xl transition-all cursor-pointer"
+                                >
+                                    Next Position
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => setShowConfirmation(true)}
+                                    disabled={!allPositionsVoted}
+                                    className={`px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${
+                                        allPositionsVoted
+                                            ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl cursor-pointer'
+                                            : 'bg-slate-700 text-gray-500 cursor-not-allowed'
+                                    }`}
+                                >
+                                    Review & Submit Ballot
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
