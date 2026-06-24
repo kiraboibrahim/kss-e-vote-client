@@ -265,6 +265,31 @@ export default function ResultsPage() {
     const [lastUpdated, setLastUpdated] = useState<string>('');
     const [nextUpdate, setNextUpdate] = useState<number>(POLL_INTERVAL);
 
+    // Auto-scroll states
+    const [autoScrollActive, setAutoScrollActive] = useState(true);
+    const [scrollSpeed, setScrollSpeed] = useState<number>(30); // pixels per second
+    const [isHovered, setIsHovered] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    // Sync fullscreen state
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
+    const toggleFullScreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    };
+
     const playNotificationSound = () => {
         try {
             const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -386,28 +411,136 @@ export default function ResultsPage() {
         }
     }, [loading, error, selectedElectionId]);
 
+    // Auto-scroll loop
+    useEffect(() => {
+        if (!autoScrollActive || loading || error || !results || isHovered) return;
+
+        let animationFrameId: number;
+        let lastTime = performance.now();
+        let scrollPos = window.scrollY;
+        let pauseTimer = 0;
+
+        const scrollStep = (time: number) => {
+            const delta = time - lastTime;
+            lastTime = time;
+
+            if (pauseTimer > 0) {
+                pauseTimer -= delta;
+                animationFrameId = requestAnimationFrame(scrollStep);
+                return;
+            }
+
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            if (maxScroll <= 0) {
+                animationFrameId = requestAnimationFrame(scrollStep);
+                return;
+            }
+
+            // Sync with manual user scrolling
+            if (Math.abs(window.scrollY - scrollPos) > 15) {
+                scrollPos = window.scrollY;
+            }
+
+            // Move scroll position
+            const pixelsToScroll = (scrollSpeed * delta) / 1000;
+            scrollPos += pixelsToScroll;
+
+            if (scrollPos >= maxScroll) {
+                scrollPos = maxScroll;
+                window.scrollTo(0, scrollPos);
+                pauseTimer = 4000; // Pause 4s at the bottom
+                scrollPos = -100; // Reset scroll position indicator
+            } else if (scrollPos < 0) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                scrollPos = 0;
+                pauseTimer = 3000; // Pause 3s at the top
+            } else {
+                window.scrollTo(0, scrollPos);
+            }
+
+            animationFrameId = requestAnimationFrame(scrollStep);
+        };
+
+        animationFrameId = requestAnimationFrame(scrollStep);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [autoScrollActive, scrollSpeed, loading, error, results, isHovered]);
+
     if (error) {
         return <ErrorState error={error} onRetry={() => loadResults(true)} />;
     }
 
     return (
-        <div className="min-h-screen bg-slate-900 p-6">
+        <div 
+            className="min-h-screen bg-slate-900 p-6 select-none"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
             <div className="max-w-7xl mx-auto space-y-6">
                 <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                    <h2 className="text-3xl font-bold text-white">Live Election Results</h2>
-                    {elections.length > 0 && (
-                        <select
-                            value={selectedElectionId || ''}
-                            onChange={(e) => setSelectedElectionId(Number(e.target.value))}
-                            className="bg-slate-800 text-white border border-slate-700 rounded-lg px-4 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-3xl font-bold text-white">Live Election Results</h2>
+                        {isHovered && autoScrollActive && (
+                            <span className="text-xs bg-yellow-400/20 text-yellow-400 border border-yellow-400/30 px-2.5 py-1 rounded-full font-bold animate-pulse">
+                                Paused (Hovered)
+                            </span>
+                        )}
+                    </div>
+                    
+                    <div className="flex items-center gap-4 flex-wrap">
+                        {/* Auto Scroll controls */}
+                        <div className="flex items-center gap-3 bg-slate-800/80 border border-slate-700 px-4 py-2 rounded-xl text-sm font-semibold shadow-md">
+                            <div className="flex items-center gap-2">
+                                <span className="text-gray-300">Auto-Scroll:</span>
+                                <button
+                                    onClick={() => setAutoScrollActive(!autoScrollActive)}
+                                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                        autoScrollActive 
+                                            ? 'bg-yellow-400 text-slate-900 shadow-md shadow-yellow-400/10' 
+                                            : 'bg-slate-700 text-gray-400 hover:text-white'
+                                    }`}
+                                >
+                                    {autoScrollActive ? 'ON' : 'OFF'}
+                                </button>
+                            </div>
+                            {autoScrollActive && (
+                                <div className="flex items-center gap-2 border-l border-slate-700 pl-3">
+                                    <span className="text-gray-300">Speed:</span>
+                                    <select
+                                        value={scrollSpeed}
+                                        onChange={(e) => setScrollSpeed(Number(e.target.value))}
+                                        className="bg-slate-900 text-yellow-400 border border-slate-700 rounded px-2 py-0.5 text-xs focus:outline-none cursor-pointer"
+                                    >
+                                        <option value={15}>Slow</option>
+                                        <option value={30}>Medium</option>
+                                        <option value={60}>Fast</option>
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Fullscreen mode button */}
+                        <button
+                            onClick={toggleFullScreen}
+                            className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-xl px-4 py-2 text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer"
                         >
-                            {elections.map((elec) => (
-                                <option key={elec.id} value={elec.id}>
-                                    {elec.title} {elec.is_active ? '(Active)' : ''} {elec.is_demo ? '(Demo)' : ''}
-                                </option>
-                            ))}
-                        </select>
-                    )}
+                            {isFullscreen ? 'Exit Full Screen' : 'Go Full Screen'}
+                        </button>
+
+                        {/* Election Selector */}
+                        {elections.length > 0 && (
+                            <select
+                                value={selectedElectionId || ''}
+                                onChange={(e) => setSelectedElectionId(Number(e.target.value))}
+                                className="bg-slate-800 text-white border border-slate-700 rounded-lg px-4 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer"
+                            >
+                                {elections.map((elec) => (
+                                    <option key={elec.id} value={elec.id}>
+                                        {elec.title} {elec.is_active ? '(Active)' : ''} {elec.is_demo ? '(Demo)' : ''}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
                 </div>
 
                 {!loading && !error && results && (
