@@ -170,31 +170,41 @@ const WizardNavigationTabs = ({
     activeStep: number;
     selectedVotes: { [positionId: number]: number };
     onStepSelect: (index: number) => void;
-}) => (
-    <div className="flex items-center gap-2 overflow-x-auto pb-4 custom-scrollbar scroll-smooth">
-        {positions.map((position, index) => {
-            const isSelected = selectedVotes[position.id] !== undefined;
-            const isActive = index === activeStep;
-            
-            return (
-                <button
-                    key={position.id}
-                    onClick={() => onStepSelect(index)}
-                    className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-bold border whitespace-nowrap transition-all duration-300 cursor-pointer shrink-0 ${
-                        isActive
-                            ? 'bg-yellow-400 border-yellow-400 text-black shadow-lg shadow-yellow-400/20 scale-[1.02]'
-                            : isSelected
-                                ? 'bg-slate-800/80 border-slate-700 text-green-405 hover:bg-slate-700/80 hover:text-green-400'
-                                : 'bg-slate-800/40 border-slate-700/50 text-gray-400 hover:text-white hover:bg-slate-850'
-                    }`}
-                >
-                    {isSelected && <Check size={14} className="stroke-[3]" />}
-                    <span>{position.title}</span>
-                </button>
-            );
-        })}
-    </div>
-);
+}) => {
+    useEffect(() => {
+        const activeTab = document.getElementById(`nav-tab-${activeStep}`);
+        if (activeTab) {
+            activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+    }, [activeStep]);
+
+    return (
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 custom-scrollbar scroll-smooth">
+            {positions.map((position, index) => {
+                const isSelected = selectedVotes[position.id] !== undefined;
+                const isActive = index === activeStep;
+                
+                return (
+                    <button
+                        key={position.id}
+                        id={`nav-tab-${index}`}
+                        onClick={() => onStepSelect(index)}
+                        className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-bold border whitespace-nowrap transition-all duration-300 cursor-pointer shrink-0 ${
+                            isActive
+                                ? 'bg-yellow-400 border-yellow-400 text-black shadow-lg shadow-yellow-400/20 scale-[1.02]'
+                                : isSelected
+                                    ? 'bg-slate-800/80 border-slate-700 text-green-405 hover:bg-slate-700/80 hover:text-green-400'
+                                    : 'bg-slate-800/40 border-slate-700/50 text-gray-400 hover:text-white hover:bg-slate-850'
+                        }`}
+                    >
+                        {isSelected && <Check size={14} className="stroke-[3]" />}
+                        <span>{position.title}</span>
+                    </button>
+                );
+            })}
+        </div>
+    );
+};
 
 const IncompleteWarning = ({ show }: { show: boolean }) => {
     if (!show) return null;
@@ -344,13 +354,6 @@ export default function CastVotePage() {
             ...prev,
             [positionId]: candidateId
         }));
-
-        // Auto-advance to next step if there is one, after a brief visual confirmation delay
-        if (activeStep < positionsWithCandidates.length - 1) {
-            setTimeout(() => {
-                setActiveStep(prev => prev + 1);
-            }, 400);
-        }
     };
 
     const allPositionsVoted = positionsWithCandidates.length > 0 && positionsWithCandidates.every(
