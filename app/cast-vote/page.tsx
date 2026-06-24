@@ -172,58 +172,6 @@ const PositionCard = ({
     );
 };
 
-const WizardNavigationTabs = ({
-    positions,
-    activeStep,
-    selectedVotes,
-    onStepSelect
-}: {
-    positions: Position[];
-    activeStep: number;
-    selectedVotes: { [positionId: number]: number[] };
-    onStepSelect: (index: number) => void;
-}) => {
-    useEffect(() => {
-        const activeTab = document.getElementById(`nav-tab-${activeStep}`);
-        if (activeTab) {
-            activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        }
-    }, [activeStep]);
-
-    return (
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 custom-scrollbar scroll-smooth">
-            {positions.map((position, index) => {
-                const selections = selectedVotes[position.id] || [];
-                const required = position.required_selections || 1;
-                const isCompleted = selections.length === required;
-                const isActive = index === activeStep;
-                
-                return (
-                    <button
-                        key={position.id}
-                        id={`nav-tab-${index}`}
-                        onClick={() => onStepSelect(index)}
-                        className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-bold border whitespace-nowrap transition-all duration-300 cursor-pointer shrink-0 ${
-                            isActive
-                                ? 'bg-yellow-400 border-yellow-400 text-black shadow-lg shadow-yellow-400/20 scale-[1.02]'
-                                : isCompleted
-                                    ? 'bg-slate-800/80 border-slate-700 text-green-400 hover:bg-slate-700/80 hover:text-green-400'
-                                    : 'bg-slate-800/40 border-slate-700/50 text-gray-400 hover:text-white hover:bg-slate-850'
-                        }`}
-                    >
-                        {isCompleted && <Check size={14} className="stroke-[3]" />}
-                        <span>{position.title}</span>
-                        {required > 1 && !isCompleted && (
-                            <span className="text-xs bg-slate-750 text-gray-300 px-1.5 py-0.5 rounded-full ml-1 font-semibold">
-                                {selections.length}/{required}
-                            </span>
-                        )}
-                    </button>
-                );
-            })}
-        </div>
-    );
-};
 
 const IncompleteWarning = ({ show }: { show: boolean }) => {
     if (!show) return null;
@@ -386,6 +334,14 @@ export default function CastVotePage() {
         loadData();
     }, []);
 
+    // Scroll active position tab into view (works for horizontal overflow on mobile)
+    useEffect(() => {
+        const activeTab = document.getElementById(`nav-tab-${activeStep}`);
+        if (activeTab) {
+            activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+    }, [activeStep]);
+
     const handleVoteSelect = (positionId: number, candidateId: number) => {
         const position = positionsWithCandidates.find(p => p.id === positionId);
         if (!position) return;
@@ -476,55 +432,100 @@ export default function CastVotePage() {
                 <IncompleteWarning show={!allPositionsVoted} />
 
                 {positionsWithCandidates.length > 0 && (
-                    <>
-                        <WizardNavigationTabs
-                            positions={positionsWithCandidates}
-                            activeStep={activeStep}
-                            selectedVotes={selectedVotes}
-                            onStepSelect={setActiveStep}
-                        />
+                    <div className="flex flex-col lg:flex-row gap-8 items-start">
+                        {/* Sidebar (Positions List) */}
+                        <div className="w-full lg:w-80 shrink-0 bg-slate-800/40 border border-slate-700/50 rounded-2xl p-4 lg:sticky lg:top-6">
+                            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3 px-2 hidden lg:block">
+                                Ballot Positions
+                            </h3>
+                            <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 custom-scrollbar scroll-smooth">
+                                {positionsWithCandidates.map((position, index) => {
+                                    const selections = selectedVotes[position.id] || [];
+                                    const required = position.required_selections || 1;
+                                    const isCompleted = selections.length === required;
+                                    const isActive = index === activeStep;
 
-                        {activePosition && (
-                            <PositionCard
-                                positionId={activePosition.id}
-                                position={activePosition}
-                                candidates={activePosition.candidates}
-                                selectedCandidateIds={selectedVotes[activePosition.id]}
-                                onVoteSelect={handleVoteSelect}
-                            />
-                        )}
-
-                        <div className="flex gap-4 items-center justify-between pt-6 border-t border-slate-700/50">
-                            <button
-                                onClick={() => setActiveStep(prev => Math.max(0, prev - 1))}
-                                disabled={activeStep === 0}
-                                className="px-6 py-3 bg-slate-700 hover:bg-slate-650 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all cursor-pointer"
-                            >
-                                Back
-                            </button>
-
-                            {activeStep < positionsWithCandidates.length - 1 ? (
-                                <button
-                                    onClick={() => setActiveStep(prev => Math.min(positionsWithCandidates.length - 1, prev + 1))}
-                                    className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black font-bold rounded-xl transition-all cursor-pointer"
-                                >
-                                    Next Position
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => setShowConfirmation(true)}
-                                    disabled={!allPositionsVoted}
-                                    className={`px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${
-                                        allPositionsVoted
-                                            ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl cursor-pointer'
-                                            : 'bg-slate-700 text-gray-500 cursor-not-allowed'
-                                    }`}
-                                >
-                                    Review & Submit Ballot
-                                </button>
-                            )}
+                                    return (
+                                        <button
+                                            key={position.id}
+                                            id={`nav-tab-${index}`}
+                                            onClick={() => setActiveStep(index)}
+                                            className={`flex items-center justify-between w-full text-left gap-3 px-4 py-3 rounded-xl text-sm font-bold border transition-all duration-300 cursor-pointer shrink-0 ${
+                                                isActive
+                                                    ? 'bg-yellow-400 border-yellow-400 text-black shadow-lg shadow-yellow-400/10 scale-[1.01]'
+                                                    : isCompleted
+                                                        ? 'bg-slate-800/80 border-slate-700 text-green-400 hover:bg-slate-700/80 hover:text-green-400'
+                                                        : 'bg-slate-850/40 border-slate-700/40 text-gray-400 hover:text-white hover:bg-slate-800/50'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-2.5 truncate">
+                                                {isCompleted ? (
+                                                    <Check size={16} className="stroke-[3] text-green-500 shrink-0" />
+                                                ) : (
+                                                    <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? 'bg-black' : 'bg-gray-600'}`}></span>
+                                                )}
+                                                <span className="truncate">{position.title}</span>
+                                            </div>
+                                            
+                                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                                                isActive 
+                                                    ? 'bg-black/10 text-black' 
+                                                    : isCompleted 
+                                                        ? 'bg-green-500/15 text-green-400' 
+                                                        : 'bg-slate-750 text-gray-300'
+                                            }`}>
+                                                {selections.length}/{required}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </>
+
+                        {/* Main Content Area */}
+                        <div className="flex-1 w-full space-y-6">
+                            {activePosition && (
+                                <PositionCard
+                                    positionId={activePosition.id}
+                                    position={activePosition}
+                                    candidates={activePosition.candidates}
+                                    selectedCandidateIds={selectedVotes[activePosition.id]}
+                                    onVoteSelect={handleVoteSelect}
+                                />
+                            )}
+
+                            <div className="flex gap-4 items-center justify-between pt-6 border-t border-slate-700/50">
+                                <button
+                                    onClick={() => setActiveStep(prev => Math.max(0, prev - 1))}
+                                    disabled={activeStep === 0}
+                                    className="px-6 py-3 bg-slate-700 hover:bg-slate-650 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all cursor-pointer"
+                                >
+                                    Back
+                                </button>
+
+                                {activeStep < positionsWithCandidates.length - 1 ? (
+                                    <button
+                                        onClick={() => setActiveStep(prev => Math.min(positionsWithCandidates.length - 1, prev + 1))}
+                                        className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black font-bold rounded-xl transition-all cursor-pointer"
+                                    >
+                                        Next Position
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => setShowConfirmation(true)}
+                                        disabled={!allPositionsVoted}
+                                        className={`px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${
+                                            allPositionsVoted
+                                                ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl cursor-pointer'
+                                                : 'bg-slate-700 text-gray-500 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        Review & Submit Ballot
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
 
