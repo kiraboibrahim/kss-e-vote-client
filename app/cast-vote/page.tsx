@@ -134,11 +134,11 @@ const PositionCard = ({
     selectedCandidateId?: number;
     onVoteSelect: (positionId: number, candidateId: number) => void
 }) => (
-    <div id={`position-${positionId}`} className="bg-slate-800 rounded-xl p-6 shadow-lg scroll-mt-24 overflow-hidden border border-slate-700/40">
-        <div className="sticky top-0 z-10 -mx-6 -mt-6 px-6 py-4 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/60 mb-6 rounded-t-xl flex items-center justify-between">
+    <div className="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700/40">
+        <div className="border-b border-slate-755 pb-4 mb-6 flex items-center justify-between">
             <div className="min-w-0 pr-4">
-                <h3 className="text-2xl font-bold text-yellow-400 truncate">{position.title}</h3>
-                <p className="text-gray-400 text-xs mt-1 truncate">{position.description}</p>
+                <h3 className="text-2xl font-bold text-yellow-400">{position.title}</h3>
+                <p className="text-gray-400 text-sm mt-1">{position.description}</p>
             </div>
             {selectedCandidateId && (
                 <div className="flex items-center gap-2 text-green-400 bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20 shrink-0">
@@ -160,106 +160,39 @@ const PositionCard = ({
     </div>
 );
 
-const BallotNavigator = ({
+const WizardNavigationTabs = ({
     positions,
+    activeStep,
     selectedVotes,
-    onNavigate
+    onStepSelect
 }: {
     positions: Position[];
+    activeStep: number;
     selectedVotes: { [positionId: number]: number };
-    onNavigate: (positionId: number) => void;
-}) => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    return (
-        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end">
-            {/* Expanded List */}
-            {isOpen && (
-                <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 shadow-2xl w-80 max-h-[70vh] flex flex-col overflow-hidden mb-3 animate-in slide-in-from-bottom-5 fade-in duration-200">
-                    <div className="flex items-center justify-between border-b border-slate-700 pb-3 mb-3">
-                        <h4 className="font-bold text-white text-lg flex items-center gap-2">
-                            <ListTodo className="w-5 h-5 text-yellow-400" />
-                            Ballot Progress
-                        </h4>
-                        <button 
-                            onClick={() => setIsOpen(false)}
-                            className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition-colors cursor-pointer"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-
-                    <div className="overflow-y-auto space-y-2 custom-scrollbar pr-1 flex-1">
-                        {positions.map((position) => {
-                            const selectedCandidateId = selectedVotes[position.id];
-                            const selectedCandidate = position.candidates.find(c => c.id === selectedCandidateId);
-                            
-                            return (
-                                <button
-                                    key={position.id}
-                                    onClick={() => {
-                                        onNavigate(position.id);
-                                        setIsOpen(false);
-                                    }}
-                                    className="w-full flex items-center justify-between text-left p-3 rounded-xl bg-slate-700/40 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600 transition-all group cursor-pointer"
-                                >
-                                    <div className="flex-1 min-w-0 pr-2">
-                                        <p className="text-xs font-semibold uppercase tracking-wider text-yellow-400/80 group-hover:text-yellow-400 transition-colors">
-                                            {position.title}
-                                        </p>
-                                        <p className="text-sm font-bold text-white truncate">
-                                            {selectedCandidate ? selectedCandidate.name : 'No selection'}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        {selectedCandidate ? (
-                                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
-                                                <Check className="w-3.5 h-3.5" />
-                                            </span>
-                                        ) : (
-                                            <span className="flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-                                        )}
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-
-            {/* Toggle Button */}
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-5 py-3.5 bg-yellow-400 hover:bg-yellow-500 text-black font-bold rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer border border-yellow-500/30"
-            >
-                <ListTodo className="w-5 h-5" />
-                <span>Progress ({Object.keys(selectedVotes).length}/{positions.length})</span>
-            </button>
-        </div>
-    );
-};
-
-const SubmitButton = ({
-    allPositionsVoted,
-    submitting,
-    onSubmit
-}: {
-    allPositionsVoted: boolean;
-    submitting: boolean;
-    onSubmit: () => void
+    onStepSelect: (index: number) => void;
 }) => (
-    <div className="flex justify-center pt-6">
-        <button
-            onClick={onSubmit}
-            disabled={!allPositionsVoted || submitting}
-            className={`px-12 py-4 rounded-xl text-lg font-bold transition-all duration-300 flex items-center gap-2 ${allPositionsVoted && !submitting
-                ? 'bg-yellow-400 text-black hover:bg-yellow-500 shadow-lg hover:shadow-xl'
-                : 'bg-slate-700 text-gray-500 cursor-not-allowed'
-                }`}
-        >
-            {submitting && <Loader2 className="w-5 h-5 animate-spin" />}
-            {submitting ? 'Submitting...' : allPositionsVoted ? 'Submit All Votes' : 'Complete All Positions to Submit'}
-        </button>
+    <div className="flex items-center gap-2 overflow-x-auto pb-4 custom-scrollbar scroll-smooth">
+        {positions.map((position, index) => {
+            const isSelected = selectedVotes[position.id] !== undefined;
+            const isActive = index === activeStep;
+            
+            return (
+                <button
+                    key={position.id}
+                    onClick={() => onStepSelect(index)}
+                    className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-bold border whitespace-nowrap transition-all duration-300 cursor-pointer shrink-0 ${
+                        isActive
+                            ? 'bg-yellow-400 border-yellow-400 text-black shadow-lg shadow-yellow-400/20 scale-[1.02]'
+                            : isSelected
+                                ? 'bg-slate-800/80 border-slate-700 text-green-405 hover:bg-slate-700/80 hover:text-green-400'
+                                : 'bg-slate-800/40 border-slate-700/50 text-gray-400 hover:text-white hover:bg-slate-850'
+                    }`}
+                >
+                    {isSelected && <Check size={14} className="stroke-[3]" />}
+                    <span>{position.title}</span>
+                </button>
+            );
+        })}
     </div>
 );
 
@@ -377,7 +310,6 @@ function transformVotesToBackendFormat(votes: { [positionId: number]: number }) 
     };
 }
 
-// Main Component
 export default function CastVotePage() {
     const [positionsWithCandidates, setPositionsWithCandidates] = useState<Position[]>([]);
     const [selectedVotes, setSelectedVotes] = useState<{ [positionId: number]: number }>({});
@@ -386,6 +318,7 @@ export default function CastVotePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const [activeStep, setActiveStep] = useState(0);
 
     // Load data on component mount
     useEffect(() => {
@@ -411,9 +344,16 @@ export default function CastVotePage() {
             ...prev,
             [positionId]: candidateId
         }));
+
+        // Auto-advance to next step if there is one, after a brief visual confirmation delay
+        if (activeStep < positionsWithCandidates.length - 1) {
+            setTimeout(() => {
+                setActiveStep(prev => prev + 1);
+            }, 400);
+        }
     };
 
-    const allPositionsVoted = positionsWithCandidates.every(
+    const allPositionsVoted = positionsWithCandidates.length > 0 && positionsWithCandidates.every(
         position => selectedVotes[position.id] !== undefined
     );
 
@@ -442,12 +382,7 @@ export default function CastVotePage() {
         }
     };
 
-    const handleNavigate = (positionId: number) => {
-        const element = document.getElementById(`position-${positionId}`);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    };
+    const activePosition = positionsWithCandidates[activeStep];
 
     if (votingComplete) return <SuccessState />;
     if (loading) return <LoadingState />;
@@ -455,37 +390,66 @@ export default function CastVotePage() {
 
     return (
         <>
-            <div className="space-y-8">
+            <div className="space-y-6">
                 <VotingHeader
                     votedCount={Object.keys(selectedVotes).length}
                     totalPositions={positionsWithCandidates.length}
                 />
 
-                {positionsWithCandidates.map((positionData) => (
-                    <PositionCard
-                        key={positionData.id}
-                        positionId={positionData.id}
-                        position={positionData}
-                        candidates={positionData.candidates}
-                        selectedCandidateId={selectedVotes[positionData.id]}
-                        onVoteSelect={handleVoteSelect}
-                    />
-                ))}
+                {positionsWithCandidates.length > 0 && (
+                    <>
+                        <WizardNavigationTabs
+                            positions={positionsWithCandidates}
+                            activeStep={activeStep}
+                            selectedVotes={selectedVotes}
+                            onStepSelect={setActiveStep}
+                        />
 
-                <SubmitButton
-                    allPositionsVoted={allPositionsVoted}
-                    submitting={submitting}
-                    onSubmit={() => setShowConfirmation(true)}
-                />
+                        {activePosition && (
+                            <PositionCard
+                                positionId={activePosition.id}
+                                position={activePosition}
+                                candidates={activePosition.candidates}
+                                selectedCandidateId={selectedVotes[activePosition.id]}
+                                onVoteSelect={handleVoteSelect}
+                            />
+                        )}
+
+                        <div className="flex gap-4 items-center justify-between pt-6 border-t border-slate-700/50">
+                            <button
+                                onClick={() => setActiveStep(prev => Math.max(0, prev - 1))}
+                                disabled={activeStep === 0}
+                                className="px-6 py-3 bg-slate-700 hover:bg-slate-650 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all cursor-pointer"
+                            >
+                                Back
+                            </button>
+
+                            {activeStep < positionsWithCandidates.length - 1 ? (
+                                <button
+                                    onClick={() => setActiveStep(prev => Math.min(positionsWithCandidates.length - 1, prev + 1))}
+                                    className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black font-bold rounded-xl transition-all cursor-pointer"
+                                >
+                                    Next Position
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => setShowConfirmation(true)}
+                                    disabled={!allPositionsVoted}
+                                    className={`px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${
+                                        allPositionsVoted
+                                            ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl cursor-pointer'
+                                            : 'bg-slate-700 text-gray-500 cursor-not-allowed'
+                                    }`}
+                                >
+                                    Review & Submit Ballot
+                                </button>
+                            )}
+                        </div>
+                    </>
+                )}
 
                 <IncompleteWarning show={!allPositionsVoted} />
             </div>
-
-            <BallotNavigator
-                positions={positionsWithCandidates}
-                selectedVotes={selectedVotes}
-                onNavigate={handleNavigate}
-            />
 
             <ConfirmationModal
                 show={showConfirmation}
