@@ -10,6 +10,7 @@ import { storeVoter } from './lib/utils';
 
 export default function LoginPage() {
     const [studentId, setStudentId] = useState('');
+    const [pin, setPin] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [selectedRole, setSelectedRole] = useState<UserRole>('voter');
@@ -23,6 +24,7 @@ export default function LoginPage() {
         try {
             const result = await authenticate(selectedRole, {
                 studentId: selectedRole === 'voter' ? studentId : undefined,
+                pin: selectedRole === 'voter' ? pin : undefined,
                 email: selectedRole === 'admin' ? email : undefined,
                 password: selectedRole === 'admin' ? password : undefined,
             });
@@ -105,15 +107,28 @@ export default function LoginPage() {
                                 </label>
 
                                 {/* Student ID Input */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1 ml-1">Voter Number</label>
-                                    <input
-                                        type="text"
-                                        value={studentId}
-                                        onChange={(e) => setStudentId(e.target.value)}
-                                        placeholder="Enter your Voter Number"
-                                        className="w-full px-6 py-4 rounded-xl border-2 border-yellow-400 bg-slate-700 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors"
-                                    />
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-1 ml-1">Voter Number</label>
+                                        <input
+                                            type="text"
+                                            value={studentId}
+                                            onChange={(e) => setStudentId(e.target.value)}
+                                            placeholder="Enter your Voter Number"
+                                            className="w-full px-6 py-4 rounded-xl border-2 border-yellow-400 bg-slate-700 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-400 mb-1 ml-1">PIN</label>
+                                        <input
+                                            type="password"
+                                            maxLength={6}
+                                            value={pin}
+                                            onChange={(e) => setPin(e.target.value)}
+                                            placeholder="Enter your 6-digit PIN"
+                                            className="w-full px-6 py-4 rounded-xl border-2 border-yellow-400 bg-slate-700 text-lg text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors"
+                                        />
+                                    </div>
                                 </div>
                             </>
                         ) : (
