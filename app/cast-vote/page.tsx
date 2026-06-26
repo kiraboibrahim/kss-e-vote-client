@@ -78,6 +78,40 @@ const SuccessState = () => (
     </div>
 );
 
+const NoPositionsState = () => (
+    <div className="flex items-center justify-center min-h-[60vh] p-6">
+        <div className="bg-slate-800 rounded-2xl p-12 text-center max-w-2xl shadow-2xl border border-slate-700/50">
+            <div className="flex justify-center mb-6">
+                <div className="w-24 h-24 bg-yellow-400/10 rounded-full flex items-center justify-center border border-yellow-400/30">
+                    <ListTodo size={60} className="text-yellow-400" />
+                </div>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">No Ballot Positions Available</h2>
+            <p className="text-gray-300 text-lg mb-6 leading-relaxed">
+                There are currently no active positions or offices configured for this election ballot. Please check back later or contact your administrator.
+            </p>
+            <div className="flex justify-center gap-4">
+                <button
+                    onClick={() => window.location.reload()}
+                    className="px-6 py-3 bg-slate-700 hover:bg-slate-650 text-white rounded-xl font-bold transition-all shadow-md cursor-pointer"
+                >
+                    Refresh Ballot
+                </button>
+                <button
+                    onClick={() => {
+                        localStorage.removeItem("voter");
+                        window.location.href = '/';
+                    }}
+                    className="px-6 py-3 bg-red-600 hover:bg-red-750 text-white rounded-xl font-bold transition-all shadow-md cursor-pointer inline-flex items-center gap-2"
+                >
+                    <LogOut size={18} />
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>
+);
+
 const VotingHeader = () => (
     <div className="pb-3 border-b border-slate-700/40">
         <h2 className="text-2xl font-bold text-white tracking-tight">KSS Student Ballot</h2>
@@ -436,6 +470,7 @@ export default function CastVotePage() {
     if (votingComplete) return <SuccessState />;
     if (loading) return <LoadingState />;
     if (error) return <ErrorState error={error} />;
+    if (positionsWithCandidates.length === 0) return <NoPositionsState />;
 
     return (
         <>
